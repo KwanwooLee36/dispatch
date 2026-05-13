@@ -1,0 +1,10 @@
+{
+  "name": "dispatch",
+  "description": "Multi-agent analysis and planning toolkit. Fan-out parallel specialists for adversarial review, competitive research, decision analysis, codebase mapping, domain surveys, and migration planning.",
+  "version": "2.0.0",
+  "author": { "name": "KwanwooLee36" },
+  "homepage": "https://github.com/KwanwooLee36/dispatch",
+  "repository": "https://github.com/KwanwooLee36/dispatch",
+  "license": "MIT",
+  "keywords": ["review", "critic", "architecture", "security", "code-quality", "adversarial", "competitive-analysis", "market-research", "decision-analysis", "codebase-mapping", "migration", "research", "fan-out"]
+}

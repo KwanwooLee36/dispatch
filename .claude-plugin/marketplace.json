@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "dispatch",
+  "description": "Multi-agent analysis and planning toolkit. Fan-out parallel specialists for adversarial review, competitive research, decision analysis, codebase mapping, domain surveys, and migration planning.",
+  "owner": {
+    "name": "KwanwooLee36",
+    "url": "https://github.com/KwanwooLee36"
+  },
+  "plugins": [
+    {
+      "name": "dispatch",
+      "description": "Multi-agent analysis and planning toolkit. Fan-out parallel specialists for adversarial review, competitive research, decision analysis, codebase mapping, domain surveys, and migration planning.",
+      "source": "./",
+      "category": "workflow"
+    }
+  ]
+}
