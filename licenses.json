@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "project": "dispatch",
+  "intent": "open-source",
+  "projectLicense": {
+    "type": "MIT",
+    "file": "LICENSE",
+    "holder": "Kwanwoo Lee",
+    "year": 2025
+  },
+  "dependencies": [],
+  "services": [],
+  "lastAudit": "2026-05-14"
+}
