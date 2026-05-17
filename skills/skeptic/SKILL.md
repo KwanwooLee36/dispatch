@@ -1,6 +1,6 @@
 ---
 name: skeptic
-description: Use when the user says 'skeptic', 'skeptic fix', 'roast my code', 'critique this project', 'find flaws', 'what's wrong with this', or wants adversarial review of architecture, design, code quality, security, performance, developer experience, or project viability. Spawns parallel specialist critics biased against the project. Also fixes Actionable Now findings via '/skeptic fix'.
+description: Use when the user says 'skeptic', 'skeptic fix', 'roast my code', 'critique this project', 'find flaws', 'what's wrong with this', or wants adversarial review of architecture, design, code quality, security, performance, developer experience, testing, or project viability. Spawns parallel specialist critics biased against the project. Also fixes Actionable Now findings via '/skeptic fix'.
 ---
 
 # Skeptic
@@ -11,13 +11,13 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 
 ```
 /skeptic          # Interactive menu — choose agents
-/skeptic full     # All 7 agents
-/skeptic quick    # All 7 agents, capped exploration depth
+/skeptic full     # All 8 agents
+/skeptic quick    # All 8 agents, capped exploration depth
 /skeptic fix      # Auto-fix Actionable Now items from latest report
 /skeptic plan     # Overarching strategic plan from latest report
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|debt
+/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|debt
 /skeptic plan help    # List available plan subcommands
-/skeptic <names>  # Specific agents: arch design code security perf dx concept
+/skeptic <names>  # Specific agents: arch design code security perf dx concept test
 ```
 
 ## Agent Roster
@@ -31,11 +31,12 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 | Performance | `perf` | sonnet | Hot paths, data access, resource usage, algorithms | N+1 queries, unnecessary allocations, missing caching, O(n^2) where O(n) exists, resource leaks |
 | DX/Ergonomics | `dx` | sonnet | Public APIs, naming, docs, onboarding, error messages, UX tooling | Confusing APIs, poor discoverability, missing docs, bad error messages, onboarding friction, broken/missing UX test tooling |
 | Concept & Strategy | `concept` | opus | Project purpose, target audience, market positioning, feasibility, differentiation, naming/branding signals, scope ambition vs. execution state | Unclear value proposition, saturated market with no differentiator, scope too ambitious for team/stack, naming that confuses or mispositions, solving a problem nobody has, feature set that doesn't match claimed audience, missing moat, better alternatives already exist |
+| Testing | `test` | sonnet | Test files, coverage configuration, assertions, test strategies, CI test integration | Meaningless tests, coverage gaps, missing edge cases, test-production divergence, untested critical paths, over-mocking, flaky patterns, missing test types (unit/integration/e2e), assertion-free tests, tests that can never fail |
 
 ### Model Strategy
 
 - **Opus (claude-opus-4-6)**: Architecture, Design, Security, Concept & Strategy, Synthesis — require deep reasoning, sustained adversarial persona, nuanced judgment
-- **Sonnet**: Code Quality, Performance, DX — more pattern-matching, structured output
+- **Sonnet**: Code Quality, Performance, DX, Testing — more pattern-matching, structured output
 - **Quick mode override**: All agents use Sonnet for speed. Prints warning: "Quick mode uses Sonnet for all agents. Output quality may be lower than full review."
 
 ## Execution Flow
@@ -81,7 +82,7 @@ header: "Agents"
 multiSelect: true
 options:
   - label: "All agents (full review)"
-    description: "Architecture, Design, Code Quality, Security, Performance, DX, Concept & Strategy — maximum coverage"
+    description: "Architecture, Design, Code Quality, Security, Performance, DX, Concept & Strategy, Testing — maximum coverage"
   - label: "Architecture"
     description: "Structure, coupling, module boundaries, scaling patterns"
   - label: "Design"
@@ -96,6 +97,8 @@ options:
     description: "API design, docs, naming, discoverability, error messages"
   - label: "Concept & Strategy"
     description: "Value prop, audience, market fit, positioning, feasibility"
+  - label: "Testing"
+    description: "Test quality, coverage gaps, meaningless tests, missing test types, flaky patterns"
 ```
 
 ### Step 2: Load History
@@ -271,6 +274,78 @@ Evaluate the project across these dimensions:
 
 ---
 
+#### Testing Agent Supplement
+
+The Testing agent receives the standard prompt template above **plus** these additional instructions appended to its prompt:
+
+---
+
+**BEGIN TESTING SUPPLEMENT**
+
+**Test Infrastructure Discovery**
+
+Before evaluating test quality, discover what testing exists in this project. Search for:
+
+1. **Test runners & configs**: Glob for `vitest.config.*`, `jest.config.*`, `playwright.config.*`, `cypress.config.*`, `.mocharc.*`, `pytest.ini`, `pyproject.toml` (pytest section), `Cargo.toml` (test config), `go.mod`, `phpunit.xml`, `.rspec`
+2. **Test directories**: Glob for `tests/`, `test/`, `__tests__/`, `spec/`, `e2e/`, `integration/`, `src/**/*.test.*`, `src/**/*.spec.*`, `**/*_test.go`, `**/*_test.rs`
+3. **Coverage config**: Glob for `.nycrc`, `.c8rc`, `coverage/`, `.coveragerc`, `tarpaulin.toml`, `lcov.info`, `codecov.yml`
+4. **CI test integration**: Glob for `.github/workflows/*.yml`, `.gitlab-ci.yml`, `Jenkinsfile`, `.circleci/config.yml` — check if tests run in CI
+5. **Test scripts**: Read `package.json` scripts for `test`, `test:unit`, `test:e2e`, `test:integration`, `test:coverage`, `test:watch`. Read `Makefile`, `Cargo.toml` for test targets.
+6. **Snapshot/fixture files**: Glob for `__snapshots__/`, `fixtures/`, `testdata/`, `test-fixtures/`
+
+**Test Quality Analysis**
+
+For each test file found, evaluate:
+
+1. **Assertion substance**: Do tests actually assert meaningful behavior, or are they assertion-free smoke tests? Look for:
+   - Tests with no assertions (just calling functions)
+   - Tests that only assert `!= null` or `!= undefined`
+   - Tests that assert on implementation details rather than behavior
+   - Snapshot tests used as a crutch instead of explicit assertions
+2. **Coverage distribution**: Are tests concentrated in easy-to-test utility code while critical paths (auth, payments, data mutation, error handling) go untested?
+3. **Test-production divergence**: Do test mocks/stubs accurately represent real dependencies? Look for:
+   - Mocks that return hardcoded success without matching real API shapes
+   - Over-mocking that makes tests pass by definition
+   - Test databases/configs that don't match production
+   - Tests that mock the thing they're supposed to be testing
+4. **Missing test types**: Does the project have appropriate coverage across:
+   - Unit tests (isolated logic)
+   - Integration tests (component interaction)
+   - E2E tests (full user flows)
+   - Contract tests (API boundaries)
+   Flag missing layers as findings. A project with only unit tests and no integration/e2e tests has a gap.
+5. **Flaky patterns**: Look for:
+   - Time-dependent tests (setTimeout, Date.now, sleep)
+   - Order-dependent tests (shared mutable state between tests)
+   - Network-dependent tests without mocking
+   - Race conditions in async test setup/teardown
+6. **Test naming and organization**: Are tests discoverable? Can you tell what a test verifies from its name? Are test files colocated or lost in a sprawling `tests/` directory with no structure?
+7. **Edge case coverage**: For critical business logic, check if tests cover:
+   - Boundary values (0, -1, MAX_INT, empty string, null)
+   - Error paths (what happens when things fail?)
+   - Concurrent access (if applicable)
+   - Invalid input
+
+**Framework Evaluation**
+
+Evaluate whether the chosen test framework(s) are appropriate:
+- Is the framework actively maintained?
+- Does it match the project's tech stack well? (e.g., Vitest for Vite projects, not Jest)
+- Are framework features being used effectively? (e.g., Playwright's auto-waiting vs. manual sleeps)
+- Are there better-suited alternatives the project should consider?
+
+**CI Integration**
+
+If CI configuration exists, evaluate:
+- Do tests actually run in CI, or is it deploy-only?
+- Is there test parallelization?
+- Are test results reported (coverage reports, test summaries)?
+- Do failing tests block deployment?
+
+**END TESTING SUPPLEMENT**
+
+---
+
 ### Step 4: Synthesis
 
 After all agents return, spawn one final **synthesis agent** (`model: "opus"`) with all reports + history (if any). Synthesis always uses Opus — even in quick mode — because merging, deduplication, and scoring require deep reasoning.
@@ -321,6 +396,7 @@ You are a neutral arbiter. You have received reports from specialist critics who
 | Performance | XX/100 | [↑↓→ or NEW] |
 | DX/Ergonomics | XX/100 | [↑↓→ or NEW] |
 | Concept | XX/100 | [↑↓→ or NEW] |
+| Testing | XX/100 | [↑↓→ or NEW] |
 | **Overall** | **XX/100** | [↑↓→ or NEW] |
 
 ## FATAL Findings
@@ -382,6 +458,7 @@ You are a neutral arbiter. You have received reports from specialist critics who
     Performance:   XX/100  [trend]
     DX:            XX/100  [trend]
     Concept:       XX/100  [trend]
+    Testing:       XX/100  [trend]
     ─────────────────────
     OVERALL:       XX/100  [trend]
 
@@ -475,6 +552,7 @@ Each agent inherits the current working directory. They have full filesystem acc
 
 **What agents can use**: Read, Glob, Grep, Bash (read-only commands like `git log`, `npm ls`, etc.)
 **DX agent extended access**: Bash for running project test/UX tools (Playwright, Cypress, Storybook, dev servers). Still read-only — no file modifications.
+**Testing agent extended access**: Bash for running test discovery commands (e.g., `npx vitest --list`, `cargo test -- --list`, `pytest --collect-only`). May run test suites to verify they pass. Still read-only — no file modifications.
 **Concept & Strategy agent access**: Read, Glob, Grep, WebSearch. No Bash — reads docs and researches market, does not execute code.
 **What agents must NOT do**: Write, Edit, or modify any files. They are critics, not contributors.
 
@@ -576,11 +654,11 @@ You are a fix agent. Implement the minimum change to resolve these findings.
   Diff: git diff HEAD~N to review all changes
 
   Remaining findings by category:
-    arch: N  |  design: N  |  code: N  |  security: N  |  perf: N  |  dx: N
+    arch: N  |  design: N  |  code: N  |  security: N  |  perf: N  |  dx: N  |  test: N
     repeat offenders: N (across M reports)
 
   Run /skeptic plan for a unified improvement roadmap.
-  Or: /skeptic plan arch|design|code|security|perf|dx|debt
+  Or: /skeptic plan arch|design|code|security|perf|dx|test|debt
 ═══════════════════════════════════════════════
 ```
 
@@ -610,6 +688,7 @@ Reads skeptic report findings and produces strategic improvement plans. Each sub
 /skeptic plan security           # hardening plan
 /skeptic plan perf               # optimization roadmap
 /skeptic plan dx                 # DX improvement plan
+/skeptic plan test               # testing improvement roadmap
 /skeptic plan debt               # cross-report debt analysis (requires 2+ reports)
 /skeptic plan help               # print available subcommands
 ```
@@ -768,6 +847,24 @@ Agent receives neutral arbiter framing (see above). Focuses on high-frequency fr
 - Tooling gaps: missing tool, impact on workflow, recommended replacement
 - Priority rank by frequency × frustration score
 
+### plan test — Testing Improvement Roadmap
+
+**Agent task**: Single Opus agent reads testing findings from the skeptic report. For each finding, identifies: (1) the gap type (missing test type, weak assertions, coverage hole, flaky pattern, framework mismatch); (2) the affected code and its criticality (auth, payments, data mutation = high; utils, formatting = low); (3) the recommended fix with specific test examples (what to test, what assertions to write, what framework to use); (4) framework recommendations — whether the current test stack is appropriate, what additions would close gaps (e.g., "add Playwright for E2E", "add contract tests with Pact"); (5) a prioritized roadmap ordered by risk × effort, where untested critical paths rank highest.
+
+Agent receives neutral arbiter framing (see above). Prioritizes by risk exposure — untested auth code outranks a missing snapshot test.
+
+**Output file**: `.skeptic/plan-test-YYYY-MM-DD.md`
+
+**Output format**:
+- Test infrastructure audit: current frameworks, configs, CI integration status
+- Coverage gap analysis: critical paths without tests, ranked by risk
+- Assertion quality fixes: specific tests to strengthen, with before/after examples
+- Missing test types: which layers are absent (unit/integration/e2e/contract), with framework recommendations
+- Flaky test remediation: identified flaky patterns, specific fixes
+- Framework recommendations: additions, replacements, or configuration changes
+- Prioritized roadmap: ordered by risk × effort (high-risk low-effort first)
+- Verification plan: how to confirm each improvement (coverage thresholds, CI gates, test counts)
+
 ### plan debt — Technical Debt Analysis
 
 **Agent task**: Single Opus agent reads ALL `.skeptic/report-*.md` files (glob pattern), not just latest. REQUIRES 2+ reports; if only 1 report exists, error: "Need 2+ reports for trend analysis. Run `/skeptic` again after some changes." Reports >90 days old flagged as "historical" but NOT downgraded — they show when issues first appeared. No upper age bound.
@@ -788,9 +885,9 @@ Agent receives neutral arbiter framing (see above). Treats debt ROI conservative
 
 ### plan (overarching) — Unified Strategic Plan
 
-The only plan mode that uses fan-out. Dispatches 6 Opus category agents in parallel, then Opus synthesis for cross-category intelligence.
+The only plan mode that uses fan-out. Dispatches 7 Opus category agents in parallel, then Opus synthesis for cross-category intelligence.
 
-#### Category Agents (6, parallel)
+#### Category Agents (7, parallel)
 
 | Agent | Category | Reads | Produces |
 |-------|----------|-------|----------|
@@ -800,12 +897,13 @@ The only plan mode that uses fan-out. Dispatches 6 Opus category agents in paral
 | Security | Security findings | Report §security + codebase | Hardening plan (same as `plan security`) |
 | Perf | Performance findings | Report §perf + hot paths | Optimization roadmap (same as `plan perf`) |
 | DX | DX findings | Report §dx + public APIs/docs | DX improvement plan (same as `plan dx`) |
+| Test | Testing findings | Report §test + test files/configs | Testing improvement roadmap (same as `plan test`) |
 
 All Opus. All receive neutral arbiter framing. Tools: Read, Glob, Grep (codebase verification). No WebSearch.
 
 #### Synthesis Agent (Opus)
 
-Receives all 6 category plans + historical reports (if 2+ exist for debt analysis). Produces:
+Receives all 7 category plans + historical reports (if 2+ exist for debt analysis). Produces:
 
 1. **Executive summary** — project health in 2-3 sentences, overall trajectory
 2. **Cross-category priority ranking** — all findings ranked by combined impact across categories. "Fix the auth bypass (security) before refactoring the module boundary (arch) because the refactor will touch auth code."
@@ -824,7 +922,7 @@ Receives all 6 category plans + historical reports (if 2+ exist for debt analysi
 
 1. Find + read latest report (+ historical if available)
 2. Staleness check (common behavior)
-3. Dispatch 6 category agents in parallel
+3. Dispatch 7 category agents in parallel
 4. Collect all category plans
 5. Dispatch synthesis with all plans + history
 6. Write to `.skeptic/plan-YYYY-MM-DD.md`
@@ -854,5 +952,6 @@ Receives all 6 category plans + historical reports (if 2+ exist for debt analysi
   Full plan: .skeptic/plan-YYYY-MM-DD.md
 
   For concept/strategy: /skeptic:recon
+  For testing improvements: /skeptic plan test
 ═══════════════════════════════════════════════
 ```

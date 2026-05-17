@@ -17,7 +17,7 @@ claude plugins install dispatch
 
 | Skill | Purpose | Specialists | Key Output |
 |-------|---------|-------------|-----------|
-| **skeptic** | Adversarial review | 7 domain critics + synthesis | Scored report, findings by severity, improvement plan |
+| **skeptic** | Adversarial review | 8 domain critics + synthesis | Scored report, findings by severity, improvement plan |
 | **recon** | Competitive deep-dive | Per-competitor analysts | Gap matrix, differentiators, prioritized backlog |
 | **tribunal** | Decision analysis | Per-option advocates + synthesis | Comparison matrix, recommendation with confidence |
 | **cartograph** | Codebase mapping | 5 dimension specialists | Developer guide with architecture, data flow, conventions |
@@ -32,13 +32,13 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 
 ```
 /skeptic          # Interactive menu — choose agents
-/skeptic full     # All 7 agents — maximum coverage
-/skeptic quick    # All 7 agents — capped exploration for speed
+/skeptic full     # All 8 agents — maximum coverage
+/skeptic quick    # All 8 agents — capped exploration for speed
 /skeptic fix      # Auto-fix Actionable Now items from latest report
 /skeptic arch     # Architecture only
 /skeptic arch code security  # Multiple specific agents
 /skeptic plan     # Strategic improvement plan from findings
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|debt
+/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|debt
 ```
 
 ### Agents
@@ -52,6 +52,7 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 | **Performance** | N+1 queries, allocations, missing caching, resource leaks | Sonnet |
 | **DX/Ergonomics** | Confusing APIs, missing docs, bad error messages, onboarding friction, broken UX tooling | Sonnet |
 | **Concept & Strategy** | Value prop, market fit, positioning, feasibility, differentiation | Opus |
+| **Testing** | Test quality, coverage gaps, meaningless tests, flaky patterns, missing test types | Sonnet |
 
 ### Output
 
