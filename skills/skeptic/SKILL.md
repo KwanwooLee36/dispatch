@@ -50,9 +50,12 @@ digraph skeptic_flow {
     menu [label="Present agent selection menu\n(AskUserQuestion)"];
     quick_check [label="Quick mode?" shape=diamond];
     history [label="Load .skeptic/ history\n(if exists)"];
-    dispatch [label="Spawn selected agents\nin parallel (Agent tool)"];
-    collect [label="Collect all agent reports"];
-    synthesis [label="Spawn synthesis agent\n(merge, dedup, score, repeat-offenders)"];
+    dispatch [label="Spawn ALL selected agents\nin parallel (Agent tool)"];
+    concept_returns [label="Concept agent returns" shape=diamond];
+    recon_prompt [label="Prompt: Run recon?\n(AskUserQuestion)"];
+    recon_yes [label="Dispatch recon agents\n(per-competitor, parallel)"];
+    wait_all [label="Wait for all agents\n+ recon (if triggered)"];
+    synthesis [label="Spawn synthesis agent\n(merge, dedup, score,\nrecon intelligence)"];
     console [label="Print summary to console"];
     file [label="Write full report to\n.skeptic/report-YYYY-MM-DD.md"];
 
@@ -61,8 +64,13 @@ digraph skeptic_flow {
     quick_check -> history [label="no"];
     quick_check -> history [label="yes\n(add token cap\nto agent prompts)"];
     history -> dispatch;
-    dispatch -> collect;
-    collect -> synthesis;
+    dispatch -> concept_returns;
+    concept_returns -> recon_prompt [label="competitors found"];
+    concept_returns -> wait_all [label="no competitors"];
+    recon_prompt -> recon_yes [label="yes"];
+    recon_prompt -> wait_all [label="no"];
+    recon_yes -> wait_all;
+    wait_all -> synthesis;
     synthesis -> console;
     synthesis -> file;
 }
@@ -346,9 +354,45 @@ If CI configuration exists, evaluate:
 
 ---
 
+### Step 3.5: Recon Prompt (After Concept Returns)
+
+All 8 agents dispatch in parallel (Step 3 unchanged). **Only applies when Concept & Strategy agent was selected.** When the Concept & Strategy agent returns — potentially before other agents finish — immediately prompt the user:
+
+```
+question: "Concept agent found competitors. Run recon for competitive deep-dive?"
+header: "Recon"
+multiSelect: false
+options:
+  - label: "Yes — run recon"
+    description: "Dispatches competitive research agents (uses concept findings). Adds ~2-5 minutes."
+  - label: "No — skip recon"
+    description: "Proceed with skeptic review only. Run /dispatch:recon separately later if needed."
+```
+
+**If concept agent found no competitors** (no named alternatives in its findings), skip the prompt entirely — recon has nothing to research.
+
+**If user selects "Yes":**
+
+1. **Extract competitors** from concept agent's report. Parse named products/tools/libraries mentioned as competitors, incumbents, or alternatives (same extraction logic as recon SKILL.md Step 3).
+2. **Read project identity** — README, docs/, config files (same as recon SKILL.md Step 3).
+3. **Dispatch competitor research agents** in parallel:
+   - **Full mode**: One Opus agent per competitor (same prompt template as recon SKILL.md)
+   - **Quick mode**: One Sonnet agent for all competitors (token-capped)
+4. **Collect recon results** — hold until all competitor agents return.
+
+Other skeptic agents continue running independently during recon. Synthesis (Step 4) waits for ALL of: specialist agents + recon results (if triggered).
+
+**If user selects "No":** Proceed directly to Step 4 once all specialist agents return.
+
 ### Step 4: Synthesis
 
-After all agents return, spawn one final **synthesis agent** (`model: "opus"`) with all reports + history (if any). Synthesis always uses Opus — even in quick mode — because merging, deduplication, and scoring require deep reasoning.
+After all agents return — including recon competitor agents if triggered in Step 3.5 — spawn one final **synthesis agent** (`model: "opus"`) with all reports + recon findings (if any) + history (if any). Synthesis always uses Opus — even in quick mode — because merging, deduplication, and scoring require deep reasoning.
+
+**If recon ran**: Append a `{RECON_INTELLIGENCE_BLOCK}` to the synthesis prompt containing the per-competitor gap analyses, feature inventories, and identified differentiators. The synthesis agent uses this to:
+- Validate/strengthen concept agent findings with concrete competitive evidence
+- **Generate new findings** from recon data: missing moats, features to steal, market positioning gaps, differentiation failures
+- Add competitive context to severity assessments (e.g., a missing feature is more severe if all competitors have it)
+- Inform the Triage section — gaps that competitors exploit may escalate from Future Work to Actionable Now
 
 #### Synthesis Agent Prompt
 
@@ -377,6 +421,14 @@ You are a neutral arbiter. You have received reports from specialist critics who
    When uncertain between Future Work and Accepted Risk, default to Future Work (bias toward action). Use project context (README, docs, code maturity signals) to judge which bucket fits. Sort entries within each category by severity descending (FATAL → MAJOR → MINOR → NITPICK), then alphabetically by title.
 
 {PRIOR_HISTORY_BLOCK}
+
+{RECON_INTELLIGENCE_BLOCK}
+
+**Recon intelligence instructions** (only if recon block is populated): Use competitive research findings both to strengthen existing assessments AND to generate new findings. Specifically:
+- If a gap identified by the concept agent is confirmed by recon (competitors exploit it), note this as "competitively validated" and consider severity escalation.
+- **Generate new findings** from recon data: missing moats (competitors have defensible advantages we lack), features to steal (competitor capabilities our users would expect), market positioning gaps, and differentiation failures. Tag these as sourced from recon (e.g., "Source: Recon — [Competitor] gap analysis").
+- New recon-sourced findings use the same severity scale (FATAL/MAJOR/MINOR/NITPICK) and appear in the merged report alongside specialist findings.
+- Reference specific competitor capabilities when they reinforce or create findings.
 
 **Output the full merged report in this format**:
 
@@ -706,11 +758,12 @@ Reads skeptic report findings and produces strategic improvement plans. Each sub
 All plan subcommands share this protocol:
 
 1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If `--report` flag provided, use that file. If no report exists: error "Run `/skeptic` first. Plan needs findings to work from."
-2. **Staleness check**: If report is >7 days old, warn: "Report is N days old. Findings may not reflect current code. Consider running `/skeptic` again." Findings from stale reports are marked as "potentially stale" in plan output.
-3. **Codebase verification**: Confirm key findings still exist in the codebase. Grep/Read referenced files and patterns. Flag findings that no longer match as "potentially resolved."
-4. **Extract findings**: Parse report for findings matching the relevant agent category.
-5. **Plan output**: Produce plan with prioritized items, affected files, effort estimates, verification commands. Each plan item cites its source finding (e.g., "Source: Architecture §3 — Circular dependency between auth and user modules").
-6. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
+2. **Load competitive/market intelligence** (opportunistic): Glob for `.skeptic/recon-*.md` and `.landscape/report-*.md`. If either exists, read the most recent of each. Pass as `{COMPETITIVE_INTELLIGENCE_BLOCK}` to plan agents. If neither exists, skip silently — no error, no warning.
+3. **Staleness check**: If report is >7 days old, warn: "Report is N days old. Findings may not reflect current code. Consider running `/skeptic` again." Findings from stale reports are marked as "potentially stale" in plan output. Recon/landscape reports >14 days old are marked as "potentially outdated market data."
+4. **Codebase verification**: Confirm key findings still exist in the codebase. Grep/Read referenced files and patterns. Flag findings that no longer match as "potentially resolved."
+5. **Extract findings**: Parse report for findings matching the relevant agent category.
+6. **Plan output**: Produce plan with prioritized items, affected files, effort estimates, verification commands. Each plan item cites its source finding (e.g., "Source: Architecture §3 — Circular dependency between auth and user modules"). When competitive intelligence is available, plan items reference market context where relevant (e.g., "Competitors X and Y already solve this with Z approach").
+7. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
 7. **Offer design doc persistence**: After writing the plan, offer to persist as a project design doc:
    ```
    Save as project design doc? This makes findings available to future agents
@@ -753,6 +806,21 @@ The plan agent exercises independent judgment:
 - Upgrade findings that seem understated
 - Flag findings where adversarial framing distorts practical recommendations
 - Prioritize by real-world impact, not by how alarming the skeptic agent made them sound
+
+### Competitive Intelligence Context
+
+Every plan agent prompt includes this block (populated only if recon/landscape reports were found in Common Behavior step 2):
+
+> {COMPETITIVE_INTELLIGENCE_BLOCK}
+
+**When populated**, plan agents must:
+- Reference competitor approaches when recommending solutions (e.g., "Competitor X solves this with [approach] — consider adopting")
+- Prioritize gaps that competitors already exploit (higher urgency than theoretical improvements)
+- Flag "table stakes" items — features/qualities all competitors have that this project lacks
+- Note moat opportunities — areas where the plan could create defensible differentiation
+- Include a `## Competitive Context` section in plan output summarizing which recommendations are competitively motivated
+
+**When empty** (no recon/landscape reports found), plan agents proceed normally with no competitive references. No error, no mention of missing data.
 
 ### plan arch — Architecture Roadmap
 
