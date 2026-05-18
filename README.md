@@ -60,7 +60,7 @@ When the Concept & Strategy agent identifies competitors, skeptic prompts you: "
 
 ### Output
 
-Reports land in `.skeptic/report-YYYY-MM-DD.md`. Console prints the verdict, scores (0-100 per category), and finding counts. Severity levels: FATAL, MAJOR, MINOR, NITPICK.
+Reports land in `.skeptic/report-YYYY-MM-DD.md`. Console prints the verdict, scores (0-100 per category), and finding counts. Severity levels: FATAL, MAJOR, MINOR, NITPICK. Future Work items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
 
 ### History
 
@@ -77,7 +77,7 @@ Reads competitor names from a prior `/skeptic` run, researches each in depth, an
 /skeptic:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
 ```
 
-Requires a skeptic report with Concept & Strategy findings that name competitors. Produces per-competitor deep dives (overview, strengths, weaknesses, feature inventory), a gap matrix tagged STEAL/CONSIDER/IRRELEVANT, differentiator analysis (existing moat, potential moat, table stakes), and prioritized recommendations. Design notes go to `.skeptic/recon-designs/`.
+Requires a skeptic report with Concept & Strategy findings that name competitors. Produces per-competitor deep dives (overview, strengths, weaknesses, feature inventory), a gap matrix tagged STEAL/CONSIDER/IRRELEVANT, differentiator analysis (existing moat, potential moat, table stakes), and prioritized recommendations. Design notes go to `.skeptic/recon-designs/`. Gap items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
 
 ---
 

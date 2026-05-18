@@ -350,9 +350,29 @@ Filename: slugified gap name (e.g., `real-time-collab.md`). Link each design not
 
 ### Step 8: Persist Backlog Items
 
-Auto-append to target project TODO.md under `### Recon Gaps — YYYY-MM-DD`.
+Persist gap items to the target project's roadmap or backlog.
 
 **Items sourced from:** Inbound Gap Matrix rows tagged STEAL or CONSIDER with HIGH or MED priority.
+
+**Route to roadmap or backlog:**
+
+**A. Roadmap routing (preferred):** Check if `docs/roadmap.md` exists in the target project.
+
+If it exists:
+1. Read the roadmap. Find a matching milestone by topic/keyword overlap with each item's gap name and design suggestion.
+2. Add each non-duplicate item as a task under the matching milestone:
+   ```
+   - [ ] [TAG] Gap name (recon) — design suggestion. See: .skeptic/recon-designs/[gap].md
+   ```
+3. If no milestone matches, add to the nearest upcoming phase under a `### Milestone: Skill Recommendations` catch-all section. Create this section if it doesn't exist.
+4. **Deduplicate**: Check existing roadmap tasks for >70% word overlap on **title only**. Items with identical titles but different design suggestions are considered duplicates — existing entry kept.
+5. Update the roadmap's `Last updated:` date to today.
+6. Report: `"Routed N items to roadmap: X to [milestone], Y to [milestone]."`
+7. Do NOT also write these items to TODO.md backlog — roadmap is the destination.
+
+**B. TODO.md fallback:** If `docs/roadmap.md` does NOT exist:
+
+Auto-append to target project TODO.md under `### Recon Gaps — YYYY-MM-DD`.
 
 **Format per item:**
 ```
@@ -364,7 +384,8 @@ Auto-append to target project TODO.md under `### Recon Gaps — YYYY-MM-DD`.
 If no TODO.md exists: create with `# TODO\n\n## Backlog\n` header.
 If TODO.md exists but has no `## Backlog` section: append one.
 
-Print: "Added {N} items to TODO.md backlog ({M} duplicates skipped)." or "All gaps already in backlog. Nothing added."
+Print: `"Added {N} items to TODO.md backlog ({M} duplicates skipped)."` or `"All gaps already in backlog. Nothing added."`
+Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
 
 ### Step 9: Console Summary
 

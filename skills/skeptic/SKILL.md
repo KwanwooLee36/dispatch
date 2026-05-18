@@ -529,20 +529,38 @@ If overall < 40:
 
 ### Step 6: Persist Future Work
 
-After writing the report, automatically persist Future Work triage items to the target project's backlog.
+After writing the report, automatically persist Future Work triage items to the target project's roadmap or backlog.
 
 1. **Check for Future Work items**: Read the Triage → Future Work section from the report just written. If empty, skip silently.
-2. **Find or create TODO.md**: If no `TODO.md` exists in the target project, create one with `# TODO\n\n## Backlog\n` header. If `TODO.md` exists but has no `## Backlog` section, append one.
-3. **Deduplicate**: Check existing `## Backlog` content for >70% word overlap on **title only** with each Future Work item. Skip duplicates.
-4. **Append**: Add non-duplicate items under a dated sub-heading:
+2. **Route to roadmap or backlog**:
 
-    ### Skeptic Future Work — YYYY-MM-DD
-    - [MAJOR] Finding title (Agent Name) — {What field from finding}
-    - [MINOR] Finding title (Agent Name) — {What field from finding}
+   **A. Roadmap routing (preferred):** Check if `docs/roadmap.md` exists in the target project.
 
-5. **Report**: Print count of items added. If all duplicates: "All Future Work items already in backlog. Nothing added."
+   If it exists:
+   1. Read the roadmap. Find a matching milestone by topic/keyword overlap with each item's title and description.
+   2. Add each non-duplicate item as a task under the matching milestone:
+      ```
+      - [ ] [SEVERITY] Finding title (skeptic) — {What field from finding}
+      ```
+   3. If no milestone matches, add to the nearest upcoming phase under a `### Milestone: Skill Recommendations` catch-all section. Create this section if it doesn't exist.
+   4. **Deduplicate**: Check existing roadmap tasks for >70% word overlap on **title only**. Skip duplicates.
+   5. Update the roadmap's `Last updated:` date to today.
+   6. Report: `"Routed N items to roadmap: X to [milestone], Y to [milestone]."`
+   7. Do NOT also write these items to TODO.md backlog — roadmap is the destination.
 
-**Permissions**: This step uses Read, Glob, Grep, Write (TODO.md only — this is the one place skeptic writes outside `.skeptic/`).
+   **B. TODO.md fallback:** If `docs/roadmap.md` does NOT exist:
+   1. Find or create `TODO.md`: If no `TODO.md` exists, create one with `# TODO\n\n## Backlog\n` header. If `TODO.md` exists but has no `## Backlog` section, append one.
+   2. **Deduplicate**: Check existing `## Backlog` content for >70% word overlap on **title only**. Skip duplicates.
+   3. Append non-duplicate items under a dated sub-heading:
+
+       ### Skeptic Future Work — YYYY-MM-DD
+       - [MAJOR] Finding title (Agent Name) — {What field from finding}
+       - [MINOR] Finding title (Agent Name) — {What field from finding}
+
+   4. Report: Print count of items added. If all duplicates: "All Future Work items already in backlog. Nothing added."
+   5. Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
+
+**Permissions**: This step uses Read, Glob, Grep, Write (TODO.md or docs/roadmap.md only — these are the only places skeptic writes outside `.skeptic/`).
 
 ### Step 7: Suggest Plan
 
