@@ -759,6 +759,7 @@ Reads skeptic report findings and produces strategic improvement plans. Each sub
 /skeptic plan perf               # optimization roadmap
 /skeptic plan dx                 # DX improvement plan
 /skeptic plan test               # testing improvement roadmap
+/skeptic plan concept            # concept & strategy roadmap
 /skeptic plan debt               # cross-report debt analysis (requires 2+ reports)
 /skeptic plan help               # print available subcommands
 ```
@@ -951,6 +952,24 @@ Agent receives neutral arbiter framing (see above). Prioritizes by risk exposure
 - Prioritized roadmap: ordered by risk × effort (high-risk low-effort first)
 - Verification plan: how to confirm each improvement (coverage thresholds, CI gates, test counts)
 
+### plan concept — Concept & Strategy Roadmap
+
+**Agent task**: Single Opus agent reads concept & strategy findings from the skeptic report. Unlike other plan agents that work from code-level findings, this agent works primarily from strategic findings (positioning clarity, market fit, differentiation, audience alignment, scope feasibility, naming/branding). The agent also reads recon reports (`.skeptic/recon-*.md`) and landscape reports (`.landscape/report-*.md`) as **primary inputs**, not just opportunistic context — competitive intelligence is essential for strategic planning. For each finding, produces: (1) the strategic gap and its business impact (why this hurts adoption, retention, or differentiation); (2) a concrete repositioning or alignment action with specific deliverables (README rewrite, landing page copy, feature scope cut, naming change); (3) competitive context — how competitors handle this dimension and what that implies for this project; (4) effort and reversibility (renaming is low-effort high-reversibility; pivoting audience is high-effort low-reversibility); (5) a prioritized roadmap ordered by market urgency × effort, where competitive table-stakes gaps and unclear value propositions rank highest.
+
+Agent receives neutral arbiter framing (see above). Prioritizes by market impact — a confused value proposition outranks a suboptimal feature name.
+
+**Output file**: `.skeptic/plan-concept-YYYY-MM-DD.md`
+
+**Output format**:
+- Value proposition assessment: current positioning clarity, recommended rewrite if needed
+- Audience alignment audit: claimed audience vs. actual feature set, gaps and mismatches
+- Competitive positioning: where the project sits relative to alternatives, moat analysis
+- Differentiation strategy: defensible advantages to strengthen, me-too features to cut or evolve
+- Scope recalibration: ambition vs. execution capacity, recommended scope adjustments
+- Naming & branding fixes: if naming confuses or mispositions, specific alternatives with rationale
+- Prioritized roadmap: ordered by market urgency × effort (table-stakes gaps first, then differentiation plays)
+- Verification plan: how to confirm each improvement (user feedback signals, competitive benchmarks, positioning tests)
+
 ### plan debt — Technical Debt Analysis
 
 **Agent task**: Single Opus agent reads ALL `.skeptic/report-*.md` files (glob pattern), not just latest. REQUIRES 2+ reports; if only 1 report exists, error: "Need 2+ reports for trend analysis. Run `/skeptic` again after some changes." Reports >90 days old flagged as "historical" but NOT downgraded — they show when issues first appeared. No upper age bound.
@@ -971,9 +990,9 @@ Agent receives neutral arbiter framing (see above). Treats debt ROI conservative
 
 ### plan (overarching) — Unified Strategic Plan
 
-The only plan mode that uses fan-out. Dispatches 7 Opus category agents in parallel, then Opus synthesis for cross-category intelligence.
+The only plan mode that uses fan-out. Dispatches 8 Opus category agents in parallel, then Opus synthesis for cross-category intelligence.
 
-#### Category Agents (7, parallel)
+#### Category Agents (8, parallel)
 
 | Agent | Category | Reads | Produces |
 |-------|----------|-------|----------|
@@ -984,12 +1003,13 @@ The only plan mode that uses fan-out. Dispatches 7 Opus category agents in paral
 | Perf | Performance findings | Report §perf + hot paths | Optimization roadmap (same as `plan perf`) |
 | DX | DX findings | Report §dx + public APIs/docs | DX improvement plan (same as `plan dx`) |
 | Test | Testing findings | Report §test + test files/configs | Testing improvement roadmap (same as `plan test`) |
+| Concept | Concept & Strategy findings | Report §concept + recon/landscape reports | Concept & strategy roadmap (same as `plan concept`) |
 
-All Opus. All receive neutral arbiter framing. Tools: Read, Glob, Grep (codebase verification). No WebSearch.
+All Opus. All receive neutral arbiter framing. Tools: Read, Glob, Grep (codebase verification). Concept agent also gets WebSearch (strategic research). No WebSearch for other agents.
 
 #### Synthesis Agent (Opus)
 
-Receives all 7 category plans + historical reports (if 2+ exist for debt analysis). Produces:
+Receives all 8 category plans + historical reports (if 2+ exist for debt analysis). Produces:
 
 1. **Executive summary** — project health in 2-3 sentences, overall trajectory
 2. **Cross-category priority ranking** — all findings ranked by combined impact across categories. "Fix the auth bypass (security) before refactoring the module boundary (arch) because the refactor will touch auth code."
@@ -1002,13 +1022,12 @@ Receives all 7 category plans + historical reports (if 2+ exist for debt analysi
    - Phase 4: Long-term improvements (infra hardening, DX investment)
 6. **Effort budget** — total estimated effort, suggested allocation % per category
 7. **Debt trends** — if 2+ reports available, include trend data. If only 1 report, skip debt section silently (no error — differs from standalone `plan debt` which requires 2+)
-8. **Concept note** — "For concept/strategy findings, run `/skeptic:recon`." (pointer, not a dependency)
 
 #### Execution Flow
 
 1. Find + read latest report (+ historical if available)
 2. Staleness check (common behavior)
-3. Dispatch 7 category agents in parallel
+3. Dispatch 8 category agents in parallel
 4. Collect all category plans
 5. Dispatch synthesis with all plans + history
 6. Write to `.skeptic/plan-YYYY-MM-DD.md`
@@ -1037,7 +1056,6 @@ Receives all 7 category plans + historical reports (if 2+ exist for debt analysi
 
   Full plan: .skeptic/plan-YYYY-MM-DD.md
 
-  For concept/strategy: /skeptic:recon
-  For testing improvements: /skeptic plan test
+  For deeper competitive research: /dispatch:recon
 ═══════════════════════════════════════════════
 ```

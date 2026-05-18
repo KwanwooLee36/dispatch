@@ -34,7 +34,7 @@ Every specialist is biased against the project. They hunt for flaws within their
 /skeptic arch     # Architecture only
 /skeptic arch code security  # Multiple specific agents
 /skeptic plan     # Strategic improvement plan from findings
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|debt
+/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|concept|debt
 ```
 
 ### Agents
