@@ -196,8 +196,7 @@ digraph tribunal_flow {
     collect [label="Collect all advocate\nreports"];
     synthesis [label="Dispatch synthesis agent\n(Opus)"];
     console [label="Print decision summary\nto console"];
-    file [label="Write full report to\n.tribunal/decision-YYYY-MM-DD-{slug}.md"];
-    offer [label="Offer design doc\npersistence"];
+    file [label="Write full report to\ndocs/designs/tribunal-{slug}-YYYY-MM-DD.md"];
 
     start -> parse;
     parse -> validate;
@@ -208,7 +207,6 @@ digraph tribunal_flow {
     collect -> synthesis;
     synthesis -> console;
     synthesis -> file;
-    file -> offer;
 }
 ```
 
@@ -297,7 +295,7 @@ Print decision summary in format:
     - [Divergence point 1]
     - [Risk consideration 1]
 
-  Full decision: .tribunal/decision-YYYY-MM-DD-{slug}.md
+  Full decision: docs/designs/tribunal-{slug}-YYYY-MM-DD.md
 ═══════════════════════════════════════════════
 ```
 
@@ -306,29 +304,14 @@ Print decision summary in format:
 Write synthesis output (full comparison matrix, divergence points, pre-mortems, recommendation, dissent note) to:
 
 ```
-.tribunal/decision-YYYY-MM-DD-{slug}.md
+docs/designs/tribunal-{slug}-YYYY-MM-DD.md
 ```
 
-Where `{slug}` is kebab-case of the decision title (e.g., `decision-2026-05-08-postgres-vs-dynamodb.md`).
+Where `{slug}` is kebab-case of the decision title (e.g., `tribunal-postgres-vs-dynamodb-2026-05-08.md`).
 
-Create `.tribunal/` directory if it doesn't exist.
-
-If a report already exists for today with the same slug, append counter: `-2`, `-3`, etc.
-
-### Step 8: Offer Design Doc Persistence
-
-After writing the full report to `.tribunal/`, offer to persist the decision as a project design doc:
-
-```
-Save as project design doc? This makes findings available to future agents
-and implementation sessions.
-  → docs/designs/tribunal-{slug}-YYYY-MM-DD.md
-```
-
-**If accepted**:
-1. Read the synthesis output from `.tribunal/decision-YYYY-MM-DD-{slug}.md`
-2. Copy the full synthesis report (comparison matrix, table stakes, divergence points, pre-mortems, recommendation, dissent note) to `docs/designs/tribunal-{slug}-YYYY-MM-DD.md`
-3. Add frontmatter:
+1. Before writing, check if a file already exists for today with the same slug. If so, append counter: `-2`, `-3`, etc.
+2. Create `docs/designs/` directory if it doesn't exist.
+3. Add frontmatter at the top of the file:
    ```yaml
    ---
    purpose: "Architectural decision record for {DECISION_TITLE}"
@@ -337,9 +320,7 @@ and implementation sessions.
    status: draft
    ---
    ```
-4. Strip ephemeral console formatting (box drawing, progress indicators, dates in headers)
-5. Create `docs/designs/` directory if it doesn't exist
-6. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
+4. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
    ```markdown
    ## Design Docs
 
@@ -348,8 +329,6 @@ and implementation sessions.
    - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
    - If CLAUDE.md doesn't exist, create it with just this block.
    - If write fails, warn and continue (best-effort).
-
-**If declined**, skip silently.
 
 ## Failure Modes & Edge Cases
 
@@ -361,8 +340,8 @@ and implementation sessions.
 | Agent output doesn't match format | Synthesis includes raw output in an "Unparsed Advocate Report" appendix. Synthesis extracts key claims if possible. |
 | Empty project (no codebase) | All advocates report with minimal context. Synthesis notes: "Project has limited codebase — decision analysis based on general principles rather than project-specific constraints." |
 | All advocates agree (unanimous) | Synthesis notes this explicitly: "Unanimous agreement on {CHOSEN_OPTION}. Debate is low-value — all advocates converge on the same option." Mark confidence as HIGH. |
-| .tribunal/ directory doesn't exist | Create it automatically. |
-| File write fails | Print full report to console only. Warn: "Could not write to .tribunal/ — report printed to console only." |
+| docs/designs/ directory doesn't exist | Create it automatically. |
+| File write fails | Print full report to console only. Warn: "Could not write to docs/designs/ — report printed to console only." |
 | Two identical options provided | Warn: "Options '{A}' and '{B}' are identical or nearly identical. Deduplicating to single option." Reduce option count and proceed. |
 
 ## Edge Cases
@@ -375,12 +354,12 @@ and implementation sessions.
 
 ## History & Persistence
 
-Reports accumulate in `.tribunal/` within the target project:
+Reports accumulate in `docs/designs/` within the target project:
 
 ```
-.tribunal/
-  decision-2026-05-08-postgres-vs-dynamodb.md
-  decision-2026-05-15-monolith-vs-microservices.md
+docs/designs/
+  tribunal-postgres-vs-dynamodb-2026-05-08.md
+  tribunal-monolith-vs-microservices-2026-05-15.md
 ```
 
 No trend tracking or repeat detection (unlike skeptic). Each decision is a one-time artifact. Decisions can be exported to vault (via `/kerd:kivna save`) for long-term reference and architecture document persistence.
@@ -437,8 +416,7 @@ Console summary printed after synthesis completes:
     ✓ Divergence (where advocates disagree)
     ✓ Risk pre-mortem (failure scenarios per option)
 
-  Full decision report: .tribunal/decision-{date}-{slug}.md
-  Design doc persistence: Optional — use /kerd:kivna save
+  Full decision report: docs/designs/tribunal-{slug}-{date}.md
 ═══════════════════════════════════════════════
 ```
 

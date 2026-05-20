@@ -15,7 +15,7 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 /skeptic quick    # All 8 agents, capped exploration depth
 /skeptic fix      # Auto-fix Actionable Now items from latest report
 /skeptic plan     # Overarching strategic plan from latest report
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|debt
+/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|concept|debt
 /skeptic plan help    # List available plan subcommands
 /skeptic <names>  # Specific agents: arch design code security perf dx concept test
 ```
@@ -560,7 +560,7 @@ After writing the report, automatically persist Future Work triage items to the 
    4. Report: Print count of items added. If all duplicates: "All Future Work items already in backlog. Nothing added."
    5. Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
 
-**Permissions**: This step uses Read, Glob, Grep, Write (TODO.md or docs/roadmap.md only — these are the only places skeptic writes outside `.skeptic/`).
+**Permissions**: This step uses Read, Glob, Grep, Write (TODO.md or docs/roadmap.md only — these are the only places this step writes outside `.skeptic/`).
 
 ### Step 7: Suggest Plan
 
@@ -575,14 +575,17 @@ This is informational only — do not auto-invoke plan mode.
 
 ## History Tracking
 
-Reports accumulate in `.skeptic/` within the target project:
+Reports and recon accumulate in `.skeptic/` within the target project:
 
 ```
 .skeptic/
   report-2026-05-01.md
   report-2026-05-06.md
   report-2026-05-06-2.md    # second review same day
+  recon-2026-05-06.md
 ```
+
+Plans are written to `docs/designs/` (see Plan Command section). `.skeptic/` holds reports and recon only.
 
 The synthesis agent reads the most recent prior report to:
 - Detect repeat offenders (same issue, new review)
@@ -646,6 +649,7 @@ Synthesis deduplicates by matching on: same file + same severity + similar title
 | Agent times out or crashes | Skip that agent. Synthesis notes "Agent X did not return findings — category unscored" |
 | Agent output doesn't match format | Synthesis includes raw output in an "Unparsed Findings" appendix. Score that category as "UNSCORED" |
 | File write fails (.skeptic/) | Print full report to console only. Warn: "Could not write to .skeptic/ — report printed to console only" |
+| Plan file write fails (docs/designs/) | Print plan to console only. Warn: "Could not write to docs/designs/ — plan printed to console only" |
 | Target project is empty | All agents report immediately. Synthesis assigns 0/100 across the board |
 | Same-day collision | Check for existing `report-YYYY-MM-DD.md`. If exists, increment counter: `-2`, `-3`, etc. Use Glob to find highest existing counter |
 | All agents return empty | Synthesis flags as suspicious: "All agents found zero issues. Either this project is flawless (unlikely) or agents failed to explore properly. Manual review recommended." |
@@ -728,7 +732,7 @@ You are a fix agent. Implement the minimum change to resolve these findings.
     repeat offenders: N (across M reports)
 
   Run /skeptic plan for a unified improvement roadmap.
-  Or: /skeptic plan arch|design|code|security|perf|dx|test|debt
+  Or: /skeptic plan arch|design|code|security|perf|dx|test|concept|debt
 ═══════════════════════════════════════════════
 ```
 
@@ -777,22 +781,14 @@ Reads skeptic report findings and produces strategic improvement plans. Each sub
 All plan subcommands share this protocol:
 
 1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If `--report` flag provided, use that file. If no report exists: error "Run `/skeptic` first. Plan needs findings to work from."
-2. **Load competitive/market intelligence** (opportunistic): Glob for `.skeptic/recon-*.md` and `.landscape/report-*.md`. If either exists, read the most recent of each. Pass as `{COMPETITIVE_INTELLIGENCE_BLOCK}` to plan agents. If neither exists, skip silently — no error, no warning.
+2. **Load competitive/market intelligence** (opportunistic): Glob for `.skeptic/recon-*.md` and `docs/designs/landscape-*.md`. If either exists, read the most recent of each. Pass as `{COMPETITIVE_INTELLIGENCE_BLOCK}` to plan agents. If neither exists, skip silently — no error, no warning.
 3. **Staleness check**: If report is >7 days old, warn: "Report is N days old. Findings may not reflect current code. Consider running `/skeptic` again." Findings from stale reports are marked as "potentially stale" in plan output. Recon/landscape reports >14 days old are marked as "potentially outdated market data."
 4. **Codebase verification**: Confirm key findings still exist in the codebase. Grep/Read referenced files and patterns. Flag findings that no longer match as "potentially resolved."
 5. **Extract findings**: Parse report for findings matching the relevant agent category.
 6. **Plan output**: Produce plan with prioritized items, affected files, effort estimates, verification commands. Each plan item cites its source finding (e.g., "Source: Architecture §3 — Circular dependency between auth and user modules"). When competitive intelligence is available, plan items reference market context where relevant (e.g., "Competitors X and Y already solve this with Z approach").
-7. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
-7. **Offer design doc persistence**: After writing the plan, offer to persist as a project design doc:
-   ```
-   Save as project design doc? This makes findings available to future agents
-   and implementation sessions.
-     → docs/designs/skeptic-plan-{type}-{slug}-YYYY-MM-DD.md
-   ```
-   **If accepted**:
-   - Read the plan file just written from `.skeptic/plan-{type}-YYYY-MM-DD.md`
-   - Copy the full plan to `docs/designs/skeptic-plan-{type}-{slug}-YYYY-MM-DD.md` where `{slug}` is kebab-cased summary of the plan type/scope
-   - Add frontmatter:
+7. **Write output**: `docs/designs/skeptic-plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `docs/designs/skeptic-plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
+   - Create `docs/designs/` directory if it doesn't exist.
+   - Add frontmatter at the top of the file:
      ```yaml
      ---
      purpose: "Improvement roadmap for {type} (from skeptic review)"
@@ -801,8 +797,6 @@ All plan subcommands share this protocol:
      status: draft
      ---
      ```
-   - Strip ephemeral content (console formatting, timestamps)
-   - Create `docs/designs/` directory if it doesn't exist
    - On first `docs/designs/` creation in this project, append to project CLAUDE.md:
      ```markdown
      ## Design Docs
@@ -812,7 +806,6 @@ All plan subcommands share this protocol:
      - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
      - If CLAUDE.md doesn't exist, create it with just this block.
      - If write fails, warn and continue (best-effort).
-   **If declined**, skip silently.
 
 ### Neutral Arbiter Clause
 
@@ -847,7 +840,7 @@ Every plan agent prompt includes this block (populated only if recon/landscape r
 
 Agent receives neutral arbiter framing (see above). Prioritizes by structural impact and deployment risk, not just theoretical elegance.
 
-**Output file**: `.skeptic/plan-arch-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-arch-YYYY-MM-DD.md`
 
 **Output format**:
 - Per finding: root cause analysis
@@ -863,7 +856,7 @@ Agent receives neutral arbiter framing (see above). Prioritizes by structural im
 
 Agent receives neutral arbiter framing (see above). Distinguishes between "this pattern is suboptimal" vs. "this pattern blocks correctness or maintainability."
 
-**Output file**: `.skeptic/plan-design-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-design-YYYY-MM-DD.md`
 
 **Output format**:
 - Per finding: pattern diagnosis and root cause
@@ -879,7 +872,7 @@ Agent receives neutral arbiter framing (see above). Distinguishes between "this 
 
 Agent receives neutral arbiter framing (see above). Focuses on high-confidence, high-impact cleanups.
 
-**Output file**: `.skeptic/plan-code-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-code-YYYY-MM-DD.md`
 
 **Output format**:
 - Dependency roadmap: ranked deps, replacements, migration steps, affected files
@@ -894,7 +887,7 @@ Agent receives neutral arbiter framing (see above). Focuses on high-confidence, 
 
 Agent receives neutral arbiter framing (see above). Treats severity conservatively — if uncertain, escalates to IMMEDIATE tier.
 
-**Output file**: `.skeptic/plan-security-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-security-YYYY-MM-DD.md`
 
 **Output format**:
 - Per urgency tier: grouped findings
@@ -908,7 +901,7 @@ Agent receives neutral arbiter framing (see above). Treats severity conservative
 
 Agent receives neutral arbiter framing (see above). Distinguishes between "measurable performance gain" vs. "theoretical improvement."
 
-**Output file**: `.skeptic/plan-perf-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-perf-YYYY-MM-DD.md`
 
 **Output format**:
 - Hot path identification and traffic estimate
@@ -924,7 +917,7 @@ Agent receives neutral arbiter framing (see above). Distinguishes between "measu
 
 Agent receives neutral arbiter framing (see above). Focuses on high-frequency friction points affecting all developers.
 
-**Output file**: `.skeptic/plan-dx-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-dx-YYYY-MM-DD.md`
 
 **Output format**:
 - API redesigns: new interface, migration path, backwards compat strategy
@@ -940,7 +933,7 @@ Agent receives neutral arbiter framing (see above). Focuses on high-frequency fr
 
 Agent receives neutral arbiter framing (see above). Prioritizes by risk exposure — untested auth code outranks a missing snapshot test.
 
-**Output file**: `.skeptic/plan-test-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-test-YYYY-MM-DD.md`
 
 **Output format**:
 - Test infrastructure audit: current frameworks, configs, CI integration status
@@ -954,11 +947,11 @@ Agent receives neutral arbiter framing (see above). Prioritizes by risk exposure
 
 ### plan concept — Concept & Strategy Roadmap
 
-**Agent task**: Single Opus agent reads concept & strategy findings from the skeptic report. Unlike other plan agents that work from code-level findings, this agent works primarily from strategic findings (positioning clarity, market fit, differentiation, audience alignment, scope feasibility, naming/branding). The agent also reads recon reports (`.skeptic/recon-*.md`) and landscape reports (`.landscape/report-*.md`) as **primary inputs**, not just opportunistic context — competitive intelligence is essential for strategic planning. For each finding, produces: (1) the strategic gap and its business impact (why this hurts adoption, retention, or differentiation); (2) a concrete repositioning or alignment action with specific deliverables (README rewrite, landing page copy, feature scope cut, naming change); (3) competitive context — how competitors handle this dimension and what that implies for this project; (4) effort and reversibility (renaming is low-effort high-reversibility; pivoting audience is high-effort low-reversibility); (5) a prioritized roadmap ordered by market urgency × effort, where competitive table-stakes gaps and unclear value propositions rank highest.
+**Agent task**: Single Opus agent reads concept & strategy findings from the skeptic report. Unlike other plan agents that work from code-level findings, this agent works primarily from strategic findings (positioning clarity, market fit, differentiation, audience alignment, scope feasibility, naming/branding). The agent also reads recon reports (`.skeptic/recon-*.md`) and landscape reports (`docs/designs/landscape-*.md`) as **primary inputs**, not just opportunistic context — competitive intelligence is essential for strategic planning. For each finding, produces: (1) the strategic gap and its business impact (why this hurts adoption, retention, or differentiation); (2) a concrete repositioning or alignment action with specific deliverables (README rewrite, landing page copy, feature scope cut, naming change); (3) competitive context — how competitors handle this dimension and what that implies for this project; (4) effort and reversibility (renaming is low-effort high-reversibility; pivoting audience is high-effort low-reversibility); (5) a prioritized roadmap ordered by market urgency × effort, where competitive table-stakes gaps and unclear value propositions rank highest.
 
 Agent receives neutral arbiter framing (see above). Prioritizes by market impact — a confused value proposition outranks a suboptimal feature name.
 
-**Output file**: `.skeptic/plan-concept-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-concept-YYYY-MM-DD.md`
 
 **Output format**:
 - Value proposition assessment: current positioning clarity, recommended rewrite if needed
@@ -978,7 +971,7 @@ Produces: (1) timeline when each finding first appeared and severity evolution; 
 
 Agent receives neutral arbiter framing (see above). Treats debt ROI conservatively — assume fixing takes longer than predicted.
 
-**Output file**: `.skeptic/plan-debt-YYYY-MM-DD.md`
+**Output file**: `docs/designs/skeptic-plan-debt-YYYY-MM-DD.md`
 
 **Output format**:
 - Report timeline: each report date, findings added/removed/repeated
@@ -1030,10 +1023,9 @@ Receives all 8 category plans + historical reports (if 2+ exist for debt analysi
 3. Dispatch 8 category agents in parallel
 4. Collect all category plans
 5. Dispatch synthesis with all plans + history
-6. Write to `.skeptic/plan-YYYY-MM-DD.md`
+6. Write to `docs/designs/skeptic-plan-YYYY-MM-DD.md` (with frontmatter and CLAUDE.md injection per Common Behavior step 7)
 7. Console: executive summary + Phase 1 items + effort estimate
 8. Offer TODO.md Phase 1 items (user confirms)
-9. Offer design doc persistence (see step 7 in Common Behavior above)
 
 #### Console Summary
 
@@ -1054,7 +1046,7 @@ Receives all 8 category plans + historical reports (if 2+ exist for debt analysi
 
   EFFORT: [total estimate, allocation %]
 
-  Full plan: .skeptic/plan-YYYY-MM-DD.md
+  Full plan: docs/designs/skeptic-plan-YYYY-MM-DD.md
 
   For deeper competitive research: /dispatch:recon
 ═══════════════════════════════════════════════

@@ -321,7 +321,7 @@ digraph landscape_flow {
     dispatch [label="Dispatch 4 research agents\n(Solutions, Approaches, Community, Business)"];
     collect [label="Collect all 4 reports"];
     synthesis [label="Dispatch synthesis agent\n(Opus)"];
-    write [label="Write to .landscape/survey-\nYYYY-MM-DD-{slug}.md"];
+    write [label="Write to docs/designs/landscape-\n{slug}-YYYY-MM-DD.md"];
     summary [label="Console summary"];
     backlog [label="Offer TODO.md backlog items"];
     end [label="Done" shape=doublecircle];
@@ -390,13 +390,30 @@ Agent({
 
 ### Step 6: Write Report
 
-Write the full synthesis output to `.landscape/survey-{DATE}-{slug}.md`:
+Write the full synthesis output to `docs/designs/landscape-{slug}-{DATE}.md`:
 - **DATE**: `YYYY-MM-DD`
-- **slug**: Kebab-cased domain string. Example: `"real-time collaboration"` → `survey-2026-05-08-real-time-collaboration.md`
+- **slug**: Kebab-cased domain string. Example: `"real-time collaboration"` → `landscape-real-time-collaboration-2026-05-08.md`
 
-Create `.landscape/` directory if it doesn't exist.
+1. Before writing, check if a report with same slug and date exists. If so, append counter: `landscape-real-time-collaboration-2026-05-08-2.md`.
+2. Create `docs/designs/` directory if it doesn't exist.
+3. Add frontmatter at the top of the file:
+   ```yaml
+   ---
+   purpose: "Market research and landscape analysis for {DOMAIN}"
+   source-skill: landscape
+   date: YYYY-MM-DD
+   status: draft
+   ---
+   ```
+4. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
+   ```markdown
+   ## Design Docs
 
-If a report with same slug and date exists, append counter: `survey-2026-05-08-real-time-collaboration-2.md`.
+   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
+   ```
+   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
+   - If CLAUDE.md doesn't exist, create it with just this block.
+   - If write fails, warn and continue (best-effort).
 
 **Report format** (from synthesis output):
 ```markdown
@@ -445,8 +462,7 @@ Print:
     Underserved segments:     X
     Emerging trends:          X
 
-  PERSISTENCE:
-    Full survey:   .landscape/survey-YYYY-MM-DD-{slug}.md
+  Full survey: docs/designs/landscape-{slug}-YYYY-MM-DD.md
 
 ═══════════════════════════════════════════════
 ```
@@ -460,49 +476,13 @@ Found X opportunities. Add to TODO.md backlog? (y/n)
 
 If user confirms:
 - Append to `TODO.md` under `### Landscape Opportunities — YYYY-MM-DD`
-- Format: `- [RESEARCH] Opportunity name — one-sentence description. See: .landscape/survey-YYYY-MM-DD-{slug}.md`
+- Format: `- [RESEARCH] Opportunity name — one-sentence description. See: docs/designs/landscape-{slug}-YYYY-MM-DD.md`
 - Deduplicate: Skip items with >70% title-only word overlap with existing entries
 - Create `TODO.md` if it doesn't exist
 
 If user declines: Skip silently, no error.
 
 If TODO.md write fails: Print items to console only. Warn: "Could not write to TODO.md — items printed to console only."
-
-### Step 9: Design Doc Persistence
-
-After writing the full survey to `.landscape/survey-YYYY-MM-DD-{slug}.md`, offer to persist as a project design doc:
-
-```
-Save as project design doc? This makes findings available to future agents
-and implementation sessions.
-  → docs/designs/landscape-{slug}-YYYY-MM-DD.md
-```
-
-**If accepted**:
-1. Read the full synthesis output from `.landscape/survey-YYYY-MM-DD-{slug}.md`
-2. Copy the complete survey (landscape map, comparison matrix, community sentiment, gap analysis, opportunity ranking, positioning recommendations) to `docs/designs/landscape-{slug}-YYYY-MM-DD.md`
-3. Add frontmatter:
-   ```yaml
-   ---
-   purpose: "Market research and landscape analysis for {DOMAIN}"
-   source-skill: landscape
-   date: YYYY-MM-DD
-   status: draft
-   ---
-   ```
-4. Strip ephemeral content (console formatting, progress indicators, dates in headers)
-5. Create `docs/designs/` directory if it doesn't exist
-6. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
-   ```markdown
-   ## Design Docs
-
-   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
-   ```
-   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
-   - If CLAUDE.md doesn't exist, create it with just this block.
-   - If write fails, warn and continue (best-effort).
-
-**If declined**, skip silently.
 
 ---
 
@@ -517,7 +497,7 @@ and implementation sessions.
 | WebFetch unavailable | Agents use WebSearch snippets only. Note reduced detail. |
 | Individual agent times out or crashes | Synthesis receives partial reports. Flags affected dimension as "incomplete research." |
 | All agents fail | Error: "Landscape research failed. Check network/tool availability." |
-| .landscape/ directory doesn't exist | Create it. |
+| docs/designs/ directory doesn't exist | Create it. |
 | TODO.md write fails | Print backlog items to console only. Warn: "Could not write to TODO.md — items printed to console only." |
 | Same-day report collision | Use Glob to find highest existing counter. Append next counter (e.g., `-2`, `-3`). |
 

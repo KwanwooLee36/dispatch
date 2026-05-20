@@ -56,7 +56,7 @@ When the Concept & Strategy agent identifies competitors, skeptic prompts you: "
 
 ### Plan with Competitive Intelligence
 
-`/skeptic plan` reads existing recon (`.skeptic/recon-*.md`) and landscape (`.landscape/report-*.md`) reports when they exist. Plan agents reference competitor approaches, flag table-stakes gaps, and note moat opportunities. If no reports exist, it proceeds without them.
+`/skeptic plan` reads existing recon (`.skeptic/recon-*.md`) and landscape (`docs/designs/landscape-*.md`) reports when they exist. Plan agents reference competitor approaches, flag table-stakes gaps, and note moat opportunities. If no reports exist, it proceeds without them.
 
 ### Output
 
@@ -114,7 +114,7 @@ Five dimension specialists analyze structure, data flow, conventions, infrastruc
 | **Infrastructure** | Build, deploy, CI/CD, containers, external services | Sonnet |
 | **Domain** | Business logic, key entities, workflows, domain vocabulary | Sonnet |
 
-Output: `docs/cartograph.md`.
+Output: `docs/designs/cartograph-{slug}.md`.
 
 ---
 
@@ -150,7 +150,7 @@ Five parallel specialists investigate API compatibility, dependencies, tests, in
 | **Infrastructure** | Sonnet | CI/CD, deployment, monitoring changes |
 | **Data** | Opus | Schema, ORM, data access patterns, rollback strategy |
 
-Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/migration-YYYY-MM-DD-{slug}.md`.
+Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/designs/migrate-{slug}-YYYY-MM-DD.md`.
 
 ---
 

@@ -4,6 +4,7 @@ TODO.md
 .slainte
 docs/playbook.md
 docs/archive/
+.session-start-sha
 
 # Claude Code local settings
 .claude/

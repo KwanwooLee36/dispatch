@@ -46,7 +46,7 @@ digraph cartograph_flow {
     dispatch [label="Spawn 5 dimension agents\nin parallel"];
     collect [label="Collect all dimension reports"];
     synthesis [label="Spawn synthesis agent\n(Opus)"];
-    write [label="Write unified guide to\ndocs/cartograph.md"];
+    write [label="Write unified guide to\ndocs/designs/cartograph-{slug}.md"];
     console [label="Print summary to console"];
 
     start -> parse;
@@ -269,8 +269,27 @@ You are a technical writer synthesizing codebase analysis from 5 specialist agen
 
 ### Step 5: Write Output
 
-1. **File**: Write the full unified guide to `docs/cartograph.md` in the target project. Overwrite if it already exists (no versioning, no counters).
-2. **Console**: Print summary with project name, complexity assessment, and line count of guide produced.
+1. Create `docs/designs/` directory if it doesn't exist.
+2. Add frontmatter at the top of the file:
+   ```yaml
+   ---
+   purpose: "Developer guide and architecture map for {Project Name}"
+   source-skill: cartograph
+   date: YYYY-MM-DD
+   status: draft
+   ---
+   ```
+3. Write the full unified guide to `docs/designs/cartograph-{slug}.md` where `{slug}` is kebab-cased project name extracted from guide header. Overwrite if it already exists (stateless, no versioning, no counters). The `date` field in frontmatter records when it was last generated.
+4. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
+   ```markdown
+   ## Design Docs
+
+   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
+   ```
+   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
+   - If CLAUDE.md doesn't exist, create it with just this block.
+   - If write fails, warn and continue (best-effort).
+5. **Console**: Print summary with project name, complexity assessment, and line count of guide produced.
 
 #### Console Summary Format
 
@@ -280,7 +299,7 @@ You are a technical writer synthesizing codebase analysis from 5 specialist agen
 ═══════════════════════════════════════════════
 
   Project: {Project Name}
-  File: docs/cartograph.md ({N} lines)
+  File: docs/designs/cartograph-{slug}.md ({N} lines)
 
   COMPLEXITY ASSESSMENT:
     Structure:      {simple|moderate|complex}
@@ -294,45 +313,9 @@ You are a technical writer synthesizing codebase analysis from 5 specialist agen
     • Data Flow: {one notable finding}
     • Domain: {one notable finding}
 
-  Guide written to: docs/cartograph.md
+  Guide written to: docs/designs/cartograph-{slug}.md
 ═══════════════════════════════════════════════
 ```
-
-### Step 6: Design Doc Persistence (Optional)
-
-After writing the guide to `docs/cartograph.md`, offer to persist as a project design doc:
-
-```
-Save as project design doc? This makes findings available to future agents
-and implementation sessions.
-  → docs/designs/cartograph-{slug}-YYYY-MM-DD.md
-```
-
-**If accepted**:
-1. Read the unified developer guide from `docs/cartograph.md`
-2. Copy the full guide to `docs/designs/cartograph-{slug}-YYYY-MM-DD.md` where `{slug}` is kebab-cased project name extracted from guide header
-3. Add frontmatter:
-   ```yaml
-   ---
-   purpose: "Developer guide and architecture map for {Project Name}"
-   source-skill: cartograph
-   date: YYYY-MM-DD
-   status: draft
-   ---
-   ```
-4. Strip ephemeral content (console formatting, timestamps, agent attribution in raw reports section)
-5. Create `docs/designs/` directory if it doesn't exist
-6. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
-   ```markdown
-   ## Design Docs
-
-   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
-   ```
-   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
-   - If CLAUDE.md doesn't exist, create it with just this block.
-   - If write fails, warn and continue (best-effort).
-
-**If declined**, skip silently.
 
 ## Failure Modes & Edge Cases
 
@@ -343,7 +326,7 @@ and implementation sessions.
 | Monorepo (multiple entry points) | Dimension agents read all entry points. Structure agent documents multiple roots. Guide notes polyrepo structure in overview. |
 | Focus parameter matches no files | Warning: "Focus parameter '{focus}' matched no files. Running analysis on entire project." Skip focus filter. |
 | Agent timeout or crash | Skip that agent. Synthesis notes "Agent X did not return findings — dimension incomplete." Omit that section from guide. |
-| Write to docs/ fails | Print full guide to console. Warn: "Could not write to docs/cartograph.md — guide printed to console only." |
+| Write to docs/designs/ fails | Print full guide to console. Warn: "Could not write to docs/designs/ — guide printed to console only." |
 | All agents return empty | Synthesis generates skeleton guide with "No findings in dimension X" placeholders. Flag as suspicious in summary. |
 
 ## Edge Cases
@@ -351,7 +334,7 @@ and implementation sessions.
 - **Empty project**: Report it. "This project contains no code. Cartograph cannot generate a guide without code."
 - **Single-file project**: Run all agents. Even minimal projects have structure, conventions, and domain logic worth documenting.
 - **No prior history**: Cartograph is stateless. Each run is fresh analysis.
-- **Read-only project**: Skill functions normally (agents only read). File write to `docs/` may fail — see Failure Modes table.
+- **Read-only project**: Skill functions normally (agents only read). File write to `docs/designs/` may fail — see Failure Modes table.
 - **Partial file access**: If filesystem access is restricted, agents explore what they can. Synthesis notes incomplete analysis in guide.
 
 ## Agent Context & Invocation
@@ -373,7 +356,7 @@ Each agent inherits the current working directory. They have full filesystem acc
 
 ## Output Format
 
-Single file: `docs/cartograph.md` (created/overwritten, not versioned)
+Single file: `docs/designs/cartograph-{slug}.md` (created/overwritten, not versioned — stateless)
 
 Contents:
 - Project overview (1 paragraph)
@@ -396,7 +379,7 @@ Dispatch works standalone but integrates with the [Kerd](https://github.com/Kwan
 
 Cartograph guides can be persisted to project vault via `/kerd:kivna save`:
 
-- Latest cartograph.md snapshot
+- Latest cartograph snapshot from `docs/designs/cartograph-{slug}.md`
 - Snapshot timestamp
 - Complexity assessment as structured data
 

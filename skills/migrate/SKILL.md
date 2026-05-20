@@ -54,7 +54,7 @@ digraph migrate_flow {
     collect [label="Collect all dimension reports"];
     synthesis [label="Spawn synthesis agent\n(merge, cross-cutting risks, effort estimate)"];
     console [label="Print summary\n(go/no-go, top risks)"];
-    file [label="Write plan to\ndocs/migration-YYYY-MM-DD-{slug}.md"];
+    file [label="Write plan to\ndocs/designs/migrate-{slug}-YYYY-MM-DD.md"];
     todo [label="Offer TODO.md items\n(user confirms)"];
 
     start -> parse;
@@ -281,15 +281,30 @@ Produce this exact format:
 
 ---
 
-### Step 6: Write Plan to docs/
+### Step 6: Write Plan to docs/designs/
 
-Write the full synthesis output to `docs/migration-YYYY-MM-DD-{slug}.md` where `{slug}` is the normalized migration name (e.g., `express-to-fastify`).
+Write the full synthesis output to `docs/designs/migrate-{slug}-YYYY-MM-DD.md` where `{slug}` is the normalized migration name (e.g., `express-to-fastify`).
 
-Migration plans are project-visible — they go in `docs/`, not a dot-dir.
+1. Before writing, check if a migration plan for the same source→target already exists today. If so, append counter: `migrate-express-to-fastify-2026-05-08-2.md`.
+2. Create `docs/designs/` directory if it doesn't exist.
+3. Add frontmatter at the top of the file:
+   ```yaml
+   ---
+   purpose: "Migration plan and risk analysis for {SOURCE} → {TARGET}"
+   source-skill: migrate
+   date: YYYY-MM-DD
+   status: draft
+   ---
+   ```
+4. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
+   ```markdown
+   ## Design Docs
 
-Create `docs/` directory if it doesn't exist.
-
-If a migration plan for the same source→target already exists today, append a counter: `migration-2026-05-08-express-to-fastify-2.md`.
+   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
+   ```
+   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
+   - If CLAUDE.md doesn't exist, create it with just this block.
+   - If write fails, warn and continue (best-effort).
 
 ### Step 7: Console Summary
 
@@ -311,7 +326,7 @@ Print migration assessment to console:
 
   CROSS-CUTTING LANDMINES: [Count]
 
-  Full plan: docs/migration-YYYY-MM-DD-{slug}.md
+  Full plan: docs/designs/migrate-{slug}-YYYY-MM-DD.md
 ═══════════════════════════════════════════════
 ```
 
@@ -323,7 +338,7 @@ Items sourced from: Phase steps in the migration plan, ordered by phase dependen
 
 Format per item:
 ```
-- [PHASE] Step name — effort estimate. See: docs/migration-YYYY-MM-DD-{slug}.md
+- [PHASE] Step name — effort estimate. See: docs/designs/migrate-{slug}-YYYY-MM-DD.md
 ```
 
 If no `TODO.md` exists: create with `# TODO\n\n## Backlog\n` header.
@@ -331,42 +346,6 @@ If no `TODO.md` exists: create with `# TODO\n\n## Backlog\n` header.
 If `TODO.md` exists but has no `## Backlog` section: append one.
 
 Offer: "Add these steps to TODO.md backlog? (Y/n)"
-
-### Step 9: Offer Design Doc Persistence
-
-After offering backlog items, offer to persist the migration plan as a project design doc:
-
-```
-Save as project design doc? This makes findings available to future agents
-and implementation sessions.
-  → docs/designs/migrate-{slug}-YYYY-MM-DD.md
-```
-
-**If accepted**:
-1. Read the full migration plan from `docs/migration-YYYY-MM-DD-{slug}.md`
-2. Copy the complete plan (executive summary, phases with steps/effort/rollback, risk matrix, cross-cutting landmines, effort estimate, go/no-go recommendation, per-phase rollback strategies) to `docs/designs/migrate-{slug}-YYYY-MM-DD.md`
-3. Add frontmatter:
-   ```yaml
-   ---
-   purpose: "Migration plan and risk analysis for {SOURCE} → {TARGET}"
-   source-skill: migrate
-   date: YYYY-MM-DD
-   status: draft
-   ---
-   ```
-4. Strip ephemeral content (console formatting, timestamps)
-5. Create `docs/designs/` directory if it doesn't exist
-6. On first `docs/designs/` creation in this project, append to project CLAUDE.md:
-   ```markdown
-   ## Design Docs
-
-   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
-   ```
-   - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
-   - If CLAUDE.md doesn't exist, create it with just this block.
-   - If write fails, warn and continue (best-effort).
-
-**If declined**, skip silently.
 
 ## Failure Modes & Edge Cases
 
@@ -380,8 +359,8 @@ and implementation sessions.
 | Target framework/language not found (WebSearch fails) | Agent reports "Target {TARGET} research inconclusive" and flags HIGH risk. Synthesis escalates uncertainty. |
 | One dimension finds zero risk (suspicious) | Synthesis agent flags this: "API Surface dimension found no risks — either extremely shallow migration or analysis incomplete." |
 | All dimensions high risk | Recommendation: "No, because — too many unmitigatable CRITICAL risks. Recommend alternative approach or extended timeline." |
-| docs/ directory doesn't exist | Create it |
-| Migration plan write fails | Print full plan to console only. Warn: "Could not write migration plan to docs/ — plan printed to console only." |
+| docs/designs/ directory doesn't exist | Create it |
+| Migration plan write fails | Print full plan to console only. Warn: "Could not write migration plan to docs/designs/ — plan printed to console only." |
 | TODO.md write fails | Print backlog items to console only. Warn: "Could not write to TODO.md — items printed to console only." |
 
 ## Edge Cases
