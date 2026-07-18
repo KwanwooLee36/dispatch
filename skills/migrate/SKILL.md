@@ -37,7 +37,7 @@ Extract source and target from the migration intent string. Warn if codebase has
 
 - **Opus**: API Surface and Data use Opus because they require deep reasoning about transformation semantics — mapping old APIs to new ones involves judgment about behavioral equivalence, not just pattern matching. Same for data migrations where rollback and consistency matter.
 - **Sonnet**: Dependencies, Tests, Infrastructure — more pattern-matching and inventory work
-- **Quick mode override**: All agents use Sonnet for speed. Prints warning before dispatch: "Quick mode uses Sonnet for all agents. Output quality may be lower than full analysis."
+- **Quick mode override**: See Quick Mode section below
 
 ## Execution Flow
 
