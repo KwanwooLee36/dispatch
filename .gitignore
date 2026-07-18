@@ -18,4 +18,6 @@ Thumbs.db
 
 # Skeptic reports (generated per-project, not tracked in plugin repo)
 .skeptic/
+
+# Scorched-earth harness scratch/worktree state (generated, not tracked in plugin repo)
 .scorched/
