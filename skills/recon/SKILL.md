@@ -10,13 +10,13 @@ Competitive deep-dive. Reads competitor names from a prior `/skeptic` run, resea
 ## Invocation
 
 ```
-/skeptic:recon         # Full mode — one Opus agent per competitor, parallel
-/skeptic:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
+/dispatch:recon         # Full mode — one Opus agent per competitor, parallel
+/dispatch:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
 ```
 
 ## Input
 
-**Target project:** The project where `/skeptic:recon` is invoked (cwd). The skeptic report must be from the same project.
+**Target project:** The project where `/dispatch:recon` is invoked (cwd). The skeptic report must be from the same project.
 
 ### Step 1: Find Skeptic Report
 

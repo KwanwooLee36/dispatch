@@ -73,8 +73,8 @@ Reports accumulate in `.skeptic/`. Synthesis detects issues flagged in prior rev
 Reads competitor names from a prior `/skeptic` run, researches each in depth, and synthesizes into a gap matrix, differentiator map, and backlog items with design suggestions.
 
 ```
-/skeptic:recon         # Full mode — one Opus agent per competitor, parallel
-/skeptic:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
+/dispatch:recon         # Full mode — one Opus agent per competitor, parallel
+/dispatch:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
 ```
 
 Requires a skeptic report with Concept & Strategy findings that name competitors. Produces per-competitor deep dives (overview, strengths, weaknesses, feature inventory), a gap matrix tagged STEAL/CONSIDER/IRRELEVANT, differentiator analysis (existing moat, potential moat, table stakes), and prioritized recommendations. Design notes go to `.skeptic/recon-designs/`. Gap items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
