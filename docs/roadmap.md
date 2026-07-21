@@ -1,6 +1,6 @@
 # Roadmap — dispatch
 
-**Last updated:** 2026-07-20
+**Last updated:** 2026-07-21
 
 dispatch is a documentation-only Claude Code plugin (Maintenance status): six multi-agent
 analysis skills authored as `skills/*/SKILL.md`. There is no runtime code. Roadmap items are
@@ -25,11 +25,22 @@ Concept & Strategy agent added to skeptic plan mode.
 
 - [x] Reconstruct CHANGELOG from plugin.json history; tighten Release Checklist (32407bc)
 - [x] Exhaustive consistency audits (2026-07-18, 2026-07-19)
+- [x] Skill-behavior verification audit (2026-07-21) — traced every invocation flow, file-I/O
+      path, model/roster claim, tool grant, and example command across all 6 SKILL.md;
+      17 new findings (B1–B17) in `docs/audits/skill-behavior-verification-2026-07-21.md`
 - [x] Fix `/skeptic:recon` → `/dispatch:recon` namespace (dd9838c)
 - [x] Scope Design Doc Persistence to 5 skills; document recon's distinct mechanism (82f801b)
-- [ ] Review branch `scorched/dispatch-dogfood-verification-harness` (56 files, dogfood
-      reports + fixture repos) — inspect, then merge or discard. Scan for kerd/kivna/PullMD
-      refs before any push (public-repo divergence rule). *(owner-gated; tracked in TODO Backlog)*
+- [x] Review branch `scorched/dispatch-dogfood-verification-harness` (56 files, dogfood
+      reports + fixture repos) — inspected 2026-07-21: self-test verified (6/6 conformant
+      PASS, 6/6 drift detected), no kerd/kivna/PullMD refs. **Recommendation: MERGE** after
+      3 fixes. See `docs/audits/skill-behavior-verification-2026-07-21.md` §5.
+- [ ] Execute the dogfood-harness merge (owner-gated): drop the `plugin.json` 2.2.1 bump
+      (main is 2.2.3), relocate the two tracked `.scorched/dogfood-report-*.md` out of the
+      git-ignored dir, amend CLAUDE.md's "documentation-only (no runtime code)" line for
+      `tests/dogfood/`'s `python3` verifier
+- [ ] Fix the still-open consistency findings (F2, F4–F12) and the new behavior findings
+      (B1–B17) — see the two `.scorched/consistency-audit-*.md` reports and
+      `docs/audits/skill-behavior-verification-2026-07-21.md`. Prioritise the MAJORs: B1–B6, B9
 
 ### Milestone 2.2: Authoring workflow adoption
 <!-- status: upcoming -->
