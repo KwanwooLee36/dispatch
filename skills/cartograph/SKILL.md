@@ -10,16 +10,16 @@ Parallel codebase mapper and developer guide generator. Five dimension specialis
 ## Invocation
 
 ```
-/cartograph          # Full analysis, all dimensions
-/cartograph quick    # Quick scan (all Sonnet, 15-file cap per agent)
-/cartograph focus:auth          # Focus all dimensions on auth subsystem
-/cartograph focus:api quick     # Focus + quick mode
+/dispatch:cartograph                  # Full analysis, all dimensions
+/dispatch:cartograph quick            # Quick scan (all Sonnet, 15-file cap per agent)
+/dispatch:cartograph focus:auth       # Focus all dimensions on auth subsystem
+/dispatch:cartograph focus:api quick  # Focus + quick mode
 ```
 
 ## Agent Roster
 
 | Agent | Lens | Model | Reading Strategy |
-|-------|------|-------|-----------------|
+|-------|------|-------|------------------|
 | Structure | Module boundaries, entry points, dependency graph, file organization | Opus | Imports, package config, directory layout, build manifests |
 | Data Flow | Data movement: APIs, state, storage, transformations, middleware chains | Opus | Function calls, DB queries, API routes, data handlers |
 | Conventions | Naming patterns, code style, idioms, error handling, testing patterns | Sonnet | Broad file sampling, style consistency, pattern detection |
@@ -28,8 +28,8 @@ Parallel codebase mapper and developer guide generator. Five dimension specialis
 
 ### Model Strategy
 
-- **Opus (claude-opus-4-6)**: Structure, Data Flow — require sustained analysis, complex dependency tracking
-- **Sonnet (claude-sonnet-4-5)**: Conventions, Infrastructure, Domain — pattern matching, file sampling
+- **Opus**: Structure, Data Flow — require sustained analysis, complex dependency tracking
+- **Sonnet**: Conventions, Infrastructure, Domain — pattern matching, file sampling
 - **Quick mode override**: All agents use Sonnet. Token cap 15 files per agent. Prints warning: "Quick mode used Sonnet for all dimensions. Structure and Data Flow analysis may miss subtle dependency chains — manual review recommended for complex systems."
 
 ## Execution Flow
@@ -39,7 +39,7 @@ digraph cartograph_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /cartograph" shape=doublecircle];
+    start [label="User invokes /dispatch:cartograph" shape=doublecircle];
     parse [label="Parse mode (full/quick)\nand focus parameter"];
     warning [label="Quick mode?" shape=diamond];
     print_warning [label="Print quick mode warning"];
@@ -48,6 +48,7 @@ digraph cartograph_flow {
     synthesis [label="Spawn synthesis agent\n(Opus)"];
     write [label="Write unified guide to\ndocs/cartograph.md"];
     console [label="Print summary to console"];
+    offer [label="Offer design doc\npersistence"];
 
     start -> parse;
     parse -> warning;
@@ -58,6 +59,7 @@ digraph cartograph_flow {
     collect -> synthesis;
     synthesis -> write;
     write -> console;
+    console -> offer;
 }
 ```
 
@@ -152,7 +154,7 @@ The Domain agent receives the standard prompt above **plus** these additional in
 
 **Domain Model Discovery**
 
-Before mapping data flow, identify the core domain model:
+Before mapping business logic and workflows, identify the core domain model:
 
 1. **Read docs**: Look for any domain docs, glossary, or business logic documentation
 2. **Check tests**: Read test descriptions for clues about workflows, entities, and expected behavior
@@ -215,7 +217,7 @@ You are a technical writer synthesizing codebase analysis from 5 specialist agen
 ## Complexity Assessment
 
 | Dimension | Complexity | Notes |
-|-----------|-----------|-------|
+|-----------|------------|-------|
 | Structure | simple/moderate/complex | [brief rationale] |
 | Data Flow | simple/moderate/complex | [brief rationale] |
 | Domain | simple/moderate/complex | [brief rationale] |

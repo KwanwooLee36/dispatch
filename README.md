@@ -27,14 +27,14 @@ claude plugins install dispatch
 Every specialist is biased against the project. They hunt for flaws within their domain, argue the project is broken, and provide no fixes. Synthesis merges their reports, scores the project 0-100 per category, and triages findings.
 
 ```
-/skeptic          # Interactive menu — choose agents
-/skeptic full     # All 8 agents — maximum coverage
-/skeptic quick    # All 8 agents — capped exploration for speed
-/skeptic fix      # Auto-fix Actionable Now items from latest report
-/skeptic arch     # Architecture only
-/skeptic arch code security  # Multiple specific agents
-/skeptic plan     # Strategic improvement plan from findings
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|concept|debt
+/dispatch:skeptic                     # Interactive menu — choose agents
+/dispatch:skeptic full                # All 8 agents — maximum coverage
+/dispatch:skeptic quick               # All 8 agents — capped exploration for speed
+/dispatch:skeptic fix                 # Auto-fix Actionable Now items from latest report
+/dispatch:skeptic arch                # Architecture only
+/dispatch:skeptic arch code security  # Multiple specific agents
+/dispatch:skeptic plan                # Strategic improvement plan from findings
+/dispatch:skeptic plan <type>         # Category plan: arch|design|code|security|perf|dx|test|concept|debt
 ```
 
 ### Agents
@@ -52,11 +52,11 @@ Every specialist is biased against the project. They hunt for flaws within their
 
 ### Inline Recon
 
-When the Concept & Strategy agent identifies competitors, skeptic prompts you: "Run recon?" If you say yes, competitive research agents dispatch immediately using the same protocol as `/dispatch:recon`. Recon findings feed into synthesis, generating new findings from competitive gaps, missing moats, and positioning failures alongside the specialist critiques.
+When the Concept & Strategy agent identifies competitors, skeptic prompts you: "Run recon?" If you say yes, competitive research agents dispatch immediately using the same research protocol as `/dispatch:recon`. Recon findings feed into synthesis, generating new findings from competitive gaps, missing moats, and positioning failures alongside the specialist critiques, and are written to `.skeptic/recon-YYYY-MM-DD.md` so a later `/dispatch:skeptic plan` can load them. Standalone `/dispatch:recon` additionally produces design notes in `.skeptic/recon-designs/`; the inline path does not.
 
 ### Plan with Competitive Intelligence
 
-`/skeptic plan` reads existing recon (`.skeptic/recon-*.md`) and landscape (`.landscape/report-*.md`) reports when they exist. Plan agents reference competitor approaches, flag table-stakes gaps, and note moat opportunities. If no reports exist, it proceeds without them.
+`/dispatch:skeptic plan` reads existing recon (`.skeptic/recon-*.md`) and landscape (`.landscape/survey-*.md`) reports when they exist. Plan agents reference competitor approaches, flag table-stakes gaps, and note moat opportunities. If no reports exist, it proceeds without them.
 
 ### Output
 
@@ -70,11 +70,11 @@ Reports accumulate in `.skeptic/`. Synthesis detects issues flagged in prior rev
 
 ## Recon
 
-Reads competitor names from a prior `/skeptic` run, researches each in depth, and synthesizes into a gap matrix, differentiator map, and backlog items with design suggestions.
+Reads competitor names from a prior `/dispatch:skeptic` run, researches each in depth, and synthesizes into a gap matrix, differentiator map, and backlog items with design suggestions.
 
 ```
-/dispatch:recon         # Full mode — one Opus agent per competitor, parallel
-/dispatch:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
+/dispatch:recon        # Full mode — one Opus agent per competitor, parallel
+/dispatch:recon quick  # Quick mode — single Sonnet agent, all competitors sequential
 ```
 
 Requires a skeptic report with Concept & Strategy findings that name competitors. Produces per-competitor deep dives (overview, strengths, weaknesses, feature inventory), a gap matrix tagged STEAL/CONSIDER/IRRELEVANT, differentiator analysis (existing moat, potential moat, table stakes), and prioritized recommendations. Design notes go to `.skeptic/recon-designs/`. Gap items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
@@ -86,9 +86,9 @@ Requires a skeptic report with Concept & Strategy findings that name competitors
 Each advocate argues FOR one option with evidence. Synthesis identifies table stakes, conflicts, and recommends the strongest path forward.
 
 ```
-/tribunal "Postgres vs DynamoDB"
-/tribunal "monolith vs microservices vs modular monolith"
-/tribunal                              # Interactive prompt for decision and options
+/dispatch:tribunal "Postgres vs DynamoDB"
+/dispatch:tribunal "monolith vs microservices vs modular monolith"
+/dispatch:tribunal                              # Interactive prompt for decision and options
 ```
 
 Requires 2-4 options. Project context (codebase) is mandatory so decisions stay grounded. Produces per-option advocate reports, a comparison matrix, and a recommendation with confidence assessment.
@@ -100,10 +100,10 @@ Requires 2-4 options. Project context (codebase) is mandatory so decisions stay 
 Five dimension specialists analyze structure, data flow, conventions, infrastructure, and domain logic in parallel. Produces a single unified developer guide.
 
 ```
-/cartograph          # Full analysis, all dimensions
-/cartograph quick    # Quick scan (all Sonnet, 15-file cap)
-/cartograph focus:auth          # Focus all dimensions on auth subsystem
-/cartograph focus:api quick     # Focus + quick mode
+/dispatch:cartograph                  # Full analysis, all dimensions
+/dispatch:cartograph quick            # Quick scan (all Sonnet, 15-file cap)
+/dispatch:cartograph focus:auth       # Focus all dimensions on auth subsystem
+/dispatch:cartograph focus:api quick  # Focus + quick mode
 ```
 
 | Dimension | Lens | Model |
@@ -123,12 +123,12 @@ Output: `docs/cartograph.md`.
 Four parallel research agents map solutions, approaches, community insights, and business dynamics for a given domain. No codebase dependency.
 
 ```
-/landscape "real-time collaboration tools"     # Full mode — 4 agents, broad research
-/landscape quick "state management"             # Quick mode — focused research
-/landscape                                      # Interactive — prompts for domain
+/dispatch:landscape "real-time collaboration tools"  # Full mode — 4 agents, broad research
+/dispatch:landscape quick "state management"         # Quick mode — focused research
+/dispatch:landscape                                  # Interactive — prompts for domain
 ```
 
-Domain string is 2-10 words. Produces a solution catalog with positioning and pricing, approaches ranked by adoption, and an opportunity ranking of gaps and emerging patterns.
+Domain string is 2-10 words; whole-category inputs ("technology", "database") are rejected with narrower suggestions, and a longer-than-10-word domain warns rather than fails. Produces a solution catalog with positioning and pricing, approaches ranked by adoption, and an opportunity ranking of gaps and emerging patterns. Opportunity items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
 
 ---
 
@@ -137,9 +137,9 @@ Domain string is 2-10 words. Produces a solution catalog with positioning and pr
 Five parallel specialists investigate API compatibility, dependencies, tests, infrastructure, and data layer. Cross-cutting landmine detection with a go/no-go recommendation.
 
 ```
-/migrate "Express to Fastify"          # Full analysis
-/migrate quick "webpack to vite"        # Quick mode (Sonnet agents)
-/migrate                                 # Interactive prompt for migration intent
+/dispatch:migrate "Express to Fastify"     # Full analysis
+/dispatch:migrate quick "webpack to vite"  # Quick mode (Sonnet agents)
+/dispatch:migrate                          # Interactive prompt for migration intent
 ```
 
 | Dimension | Model | Investigates |
@@ -150,13 +150,13 @@ Five parallel specialists investigate API compatibility, dependencies, tests, in
 | **Infrastructure** | Sonnet | CI/CD, deployment, monitoring changes |
 | **Data** | Opus | Schema, ORM, data access patterns, rollback strategy |
 
-Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/migration-YYYY-MM-DD-{slug}.md`.
+Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/migration-YYYY-MM-DD-{slug}.md`. Migration steps route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise — always after you confirm.
 
 ---
 
 ## Design Doc Persistence
 
-Five skills — **skeptic** (via `/skeptic plan`), **cartograph**, **landscape**, **migrate**, and **tribunal** — can persist their primary output as a design doc in `docs/designs/`. On the first time that directory is created in a project, they append a `## Design Docs` orientation block to the project's `CLAUDE.md`, so future sessions (switch-in, dian, or any session start) read every file in `docs/designs/` and inherit the context.
+Five skills — **skeptic** (via `/dispatch:skeptic plan`), **cartograph**, **landscape**, **migrate**, and **tribunal** — can persist their primary output as a design doc in `docs/designs/`. On the first time that directory is created in a project, they append a `## Design Docs` orientation block to the project's `CLAUDE.md`, so future sessions (switch-in, dian, or any session start) read every file in `docs/designs/` and inherit the context.
 
 **Recon is the exception — it does not use `docs/designs/` and does not auto-inject into `CLAUDE.md`.** Recon's design notes are fragmentary: one note per gap tagged **STEAL** in its Inbound Gap Matrix. It writes each to `.skeptic/recon-designs/[gap-name].md` and links them from the main recon report (`.skeptic/recon-YYYY-MM-DD.md`). This keeps recon's many small, competitive-intelligence fragments co-located with the skeptic/recon reports they derive from, rather than scattering them across `docs/designs/` and bloating the always-read `CLAUDE.md` auto-inject. Recon surfaces these notes through its report and its routed backlog/roadmap items instead.
 

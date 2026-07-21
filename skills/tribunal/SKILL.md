@@ -10,21 +10,21 @@ Structured multi-perspective decision analysis. Spawns competing advocate agents
 ## Invocation
 
 ```
-/tribunal "Postgres vs DynamoDB"
-/tribunal "monolith vs microservices vs modular monolith"
-/tribunal                              # Prompts interactively for decision and options
+/dispatch:tribunal "Postgres vs DynamoDB"
+/dispatch:tribunal "monolith vs microservices vs modular monolith"
+/dispatch:tribunal                              # Prompts interactively for decision and options
 ```
 
 ## Input Parsing
 
-If user provides quoted string (`/tribunal "option1 vs option2 vs option3"`):
+If user provides quoted string (`/dispatch:tribunal "option1 vs option2 vs option3"`):
 - Split on `vs` / `or` / commas (case-insensitive split boundaries, trim whitespace)
 - Extract options and validate count (2-4 required)
 - Error if outside range: "Tribunal requires 2-4 options. You provided X."
 
-If user provides no args (`/tribunal`):
-- Use **AskUserQuestion** to prompt for the decision title and 2-4 options interactively
-- Store parsed options and proceed
+If user provides no args (`/dispatch:tribunal`):
+- Prompt in plain conversation for the decision title and 2-4 options, then wait for the reply (see Step 1 for the exact prompt). Not `AskUserQuestion` — that tool offers fixed choices, and these inputs are free text.
+- Parse the reply with the same split rule as the quoted form, then proceed
 
 **Project context is mandatory** — all advocate agents read the codebase, understand current architecture, constraints, and tech stack. Decisions are grounded in the specific project, never abstract.
 
@@ -99,7 +99,7 @@ You are the Lead Decision Analyst. You have received advocate reports arguing fo
 
 **Competing options**: {ALL_OPTIONS}
 
-**You have two jobs:**
+**You have four jobs:**
 
 #### Job 1: Comparison Matrix
 
@@ -188,8 +188,8 @@ digraph tribunal_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /tribunal" shape=doublecircle];
-    parse [label="Parse input / AskUserQuestion\nExtract 2-4 options"];
+    start [label="User invokes /dispatch:tribunal" shape=doublecircle];
+    parse [label="Parse input / prompt in chat\nExtract 2-4 options"];
     validate [label="Validate option count\n(2-4 required)" shape=diamond];
     error1 [label="Error: Invalid count" shape=box, style=filled, fillcolor=lightcoral];
     dispatch [label="Dispatch advocate agents\nin parallel (one per option)"];
@@ -216,25 +216,32 @@ digraph tribunal_flow {
 
 ### Step 1: Parse Input / Prompt for Decision
 
-If user provided `/tribunal "option1 vs option2 vs option3"`:
-- Split on `vs` (case-insensitive)
+If user provided `/dispatch:tribunal "option1 vs option2 vs option3"`:
+- Split on `vs`, `or`, and commas (case-insensitive split boundaries) — same rule as Input Parsing
 - Trim whitespace from each option
 - Extract list of options
 
-If user provided `/tribunal` with no args:
-- Use **AskUserQuestion** with text inputs:
-  - `question`: "What decision are you making?"
-  - `placeholder`: "e.g., 'Postgres vs DynamoDB'" or "Database choice"
-  - `description`: "Be specific about the decision context (new feature, migration, architecture choice, etc.)"
-  - Collect decision title in field 1
-  - Field 2-5: Up to 4 options (fields 2-3 required, 4-5 optional)
+If user provided `/dispatch:tribunal` with no args:
+- **Ask in plain conversation and wait for the reply** — the options are free text, and `AskUserQuestion` presents fixed multiple-choice options only. Do not use it here.
+- Print exactly:
+  ```
+  What decision are you making, and what are the options?
+
+  Give a short decision title, then 2-4 options — one per line, or on one line
+  separated by "vs" / "or" / commas.
+
+  Example:
+    Database choice
+    Postgres vs DynamoDB vs SQLite
+  ```
+- Parse the reply with the same split rule as the argument form. If the reply yields fewer than 2 options, ask once more with the same prompt; if it still yields fewer than 2, exit cleanly with the Step 2 error.
 
 ### Step 2: Validate Option Count
 
 Check: `2 <= len(options) <= 4`
 
-- If < 2: Error "Tribunal requires at least 2 options. Please provide more."
-- If > 4: Error "Tribunal accepts maximum 4 options. You provided X. Pick the 4 most important."
+- If < 2: Error "Tribunal requires 2-4 options. You provided X."
+- If > 4: Error "Tribunal requires 2-4 options. You provided X."
 
 Proceed only if valid.
 
@@ -298,8 +305,11 @@ Print decision summary in format:
     - [Risk consideration 1]
 
   Full decision: .tribunal/decision-YYYY-MM-DD-{slug}.md
+  Design doc: offered next (Step 8)
 ═══════════════════════════════════════════════
 ```
+
+This block is the **canonical** console summary — the Console Output Format section below documents the same block plus the low-confidence addendum, not a second variant.
 
 ### Step 7: Write Full Report
 
@@ -355,8 +365,8 @@ and implementation sessions.
 
 | Failure | Behavior |
 |---------|----------|
-| User provides < 2 options | Error: "Tribunal requires at least 2 options." Re-prompt. |
-| User provides > 4 options | Error: "Tribunal accepts maximum 4 options. Please pick 4." Prompt to narrow. |
+| User provides < 2 options | Error: "Tribunal requires 2-4 options. You provided X." Re-prompt. |
+| User provides > 4 options | Error: "Tribunal requires 2-4 options. You provided X." Prompt to narrow. |
 | Agent times out or crashes | Synthesis notes: "Advocate for {OPTION} did not return — that perspective is incomplete." Proceed with partial advocates. |
 | Agent output doesn't match format | Synthesis includes raw output in an "Unparsed Advocate Report" appendix. Synthesis extracts key claims if possible. |
 | Empty project (no codebase) | All advocates report with minimal context. Synthesis notes: "Project has limited codebase — decision analysis based on general principles rather than project-specific constraints." |
@@ -417,32 +427,11 @@ Each agent inherits the current working directory. They have full filesystem acc
 
 ## Console Output Format
 
-Console summary printed after synthesis completes:
+Console summary printed after synthesis completes: **use the block in Step 6 verbatim** — it is the single canonical format. `KEY FACTORS` is filled with actual findings (one table-stakes agreement, one divergence point, one risk consideration), not with the category labels themselves.
 
-```
-═══════════════════════════════════════════════
-  TRIBUNAL DECISION — {YYYY-MM-DD}
-═══════════════════════════════════════════════
+Design-doc persistence is **not** a manual step and is not deferred to another tool: Step 8 offers it automatically and writes `docs/designs/tribunal-{slug}-YYYY-MM-DD.md` on confirmation.
 
-  DECISION: {DECISION_TITLE}
-
-  RECOMMENDATION: {CHOSEN_OPTION}
-  CONFIDENCE: {HIGH | MEDIUM | LOW}
-
-  OPTIONS ANALYZED:
-  {N} options submitted to advocate review
-
-  KEY FACTORS:
-    ✓ Table stakes (agreed points)
-    ✓ Divergence (where advocates disagree)
-    ✓ Risk pre-mortem (failure scenarios per option)
-
-  Full decision report: .tribunal/decision-{date}-{slug}.md
-  Design doc persistence: Optional — use /kerd:kivna save
-═══════════════════════════════════════════════
-```
-
-If confidence is LOW:
+If confidence is LOW, append:
 
 ```
   ⚠ NOTE: Low confidence. Multiple options are viable.
