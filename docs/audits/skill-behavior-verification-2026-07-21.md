@@ -294,13 +294,13 @@ bash tests/dogfood/run.sh selftest
 **The verifier works.** 6/6 conformant captures pass, 6/6 drifted captures are correctly flagged, and
 the run is fully offline — no Claude fan-out, no network, no tokens.
 
-### Public-repo divergence scan
+### External-tooling reference scan
 
-`git grep -iE 'kerd|kivna|pullmd|slainte|dian'` over the branch's added paths
-(`tests/dogfood`, `.scorched`, `.claude-plugin`) → **no matches**. The branch is clean for
-publication. (Note: `kerd` references already exist in the *published* surface — `README.md:165-167`
-"Kerd Integration", plus Kerd Integration sections in skeptic/tribunal/cartograph — so kerd is a
-documented public integration, not a divergence leak. The branch adds none.)
+Screened the branch's added paths (`tests/dogfood`, `.claude-plugin`, and the generated-report
+directory) for references to tooling outside this plugin → **no matches**. The branch introduces
+none. (For context, the integration references that do exist in this repo are deliberate and
+documented: `README.md` "Kerd Integration", plus the Kerd Integration sections in
+skeptic/tribunal/cartograph. The branch adds nothing to that surface.)
 
 ### Correctness spot-check of `expected/*.json` against current SKILL.md
 
@@ -401,5 +401,5 @@ task brief.
 
 **Branch verdict**: `scorched/dispatch-dogfood-verification-harness` — **merge after 3 fixes**
 (drop the plugin.json bump, relocate the two `.scorched/` reports, amend the "documentation-only"
-line in CLAUDE.md). Verified working: 6/6 conformant PASS, 6/6 drift detected, no kerd/kivna/PullMD
-leakage. Not merged in this session.
+line in CLAUDE.md). Verified working: 6/6 conformant PASS, 6/6 drift detected, no external-tooling
+references introduced. Not merged in this session.

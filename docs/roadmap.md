@@ -32,7 +32,7 @@ Concept & Strategy agent added to skeptic plan mode.
 - [x] Scope Design Doc Persistence to 5 skills; document recon's distinct mechanism (82f801b)
 - [x] Review branch `scorched/dispatch-dogfood-verification-harness` (56 files, dogfood
       reports + fixture repos) — inspected 2026-07-21: self-test verified (6/6 conformant
-      PASS, 6/6 drift detected), no kerd/kivna/PullMD refs. **Recommendation: MERGE** after
+      PASS, 6/6 drift detected), no external-tooling references. **Recommendation: MERGE** after
       3 fixes. See `docs/audits/skill-behavior-verification-2026-07-21.md` §5.
 - [ ] Execute the dogfood-harness merge (owner-gated): drop the `plugin.json` 2.2.1 bump
       (main is 2.2.3), relocate the two tracked `.scorched/dogfood-report-*.md` out of the
@@ -73,9 +73,9 @@ Concept & Strategy agent added to skeptic plan mode.
         public-repo effect, cheap, matches Archive Policy convention
       - **OMIT** `docs/playbook.md` — redundant with what CLAUDE.md/README/roadmap already
         cover for a docs-only plugin; local-only file no session currently reads
-      - **OMIT** `kivna/vault.json`, `kivna/sessions/` — kivna scaffolding, default-omit per
-        guardrail; no vault folder exists for dispatch and creating one adds private-fleet
-        linkage with no public benefit (kivna/ is fully gitignored regardless)
+      - **OMIT** `kivna/vault.json`, `kivna/sessions/` — no vault folder exists for dispatch,
+        and creating one would add external-workflow coupling with no benefit to this plugin
+        (`kivna/` is fully gitignored regardless)
       - **OMIT** adding literal `kivna/input/`/`kivna/output/` `.gitignore` lines — already
         covered by the blanket `kivna/` ignore (line 2); would be redundant
       - Also found (out of the originally-flagged list, not acted on — see TODO backlog):

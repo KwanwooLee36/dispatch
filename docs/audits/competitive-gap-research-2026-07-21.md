@@ -225,8 +225,8 @@ dispatch root: `CLAUDE.md`, `CHANGELOG.md`, `README.md`, `LICENSE`, `licenses.js
 Missing and plausibly worth it: **`CONTRIBUTING.md`** (dispatch is public; there is no stated bar for a
 new specialist or a new skill) and an **authoring/architecture doc** capturing the fan-out contract that
 currently lives implicitly across six SKILL.md files. dispatch already has `docs/roadmap.md` and
-`docs/audits/`; `switch-in.sh` separately flags the missing `docs/playbook.md`, `docs/archive/`,
-`.slainte`, and `kivna/vault.json` — a partly-overlapping concern that `/kerd:tend` owns.
+`docs/audits/`; the gitignored local-workflow files (`docs/playbook.md`, `docs/archive/`,
+`.slainte`, `kivna/vault.json`) are a separate, partly-overlapping concern that `/kerd:tend` owns.
 
 ### 4F. Multi-harness distribution — noted and not recommended
 
