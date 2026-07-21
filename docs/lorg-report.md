@@ -17,7 +17,7 @@ Creating/editing skills and verifying they work before deployment.
 Why here: dispatch **is** a bundle of six Claude Code skills — every future change to
 `skills/*/SKILL.md` (new specialist, new mode, trigger wording) is exactly writing-skills'
 domain. No evidence it has been invoked here; skill edits have been ad-hoc + audited after
-the fact (two consistency audits in `.scorched/`). Adopt it as the standard front-door for
+the fact (two consistency audits in `docs/audits/`). Adopt it as the standard front-door for
 skill edits.
 
 Already installed. Try: /superpowers:writing-skills

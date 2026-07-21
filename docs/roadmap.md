@@ -60,12 +60,27 @@ Concept & Strategy agent added to skeptic plan mode.
 <!-- status: upcoming -->
 <!-- target: 2.4.0 -->
 
-- [ ] Adopt `/superpowers:writing-skills` as the front-door for future `skills/*/SKILL.md`
-      edits (accepted from lorg 2026-07-20) — replaces ad-hoc edit + after-the-fact audit
-- [ ] Run `/kerd:tend` to adjudicate switch-in-flagged missing structure (`docs/archive/`,
-      `docs/playbook.md`, `kivna/vault.json`, `kivna/sessions/`, `.gitignore` entries) —
-      decide per item whether a public docs-only plugin adopts or intentionally omits it
-      (accepted from lorg 2026-07-20)
+- [x] Adopt `/superpowers:writing-skills` as the front-door for future `skills/*/SKILL.md`
+      edits (accepted from lorg 2026-07-20; recorded 2026-07-21) — replaces ad-hoc edit +
+      after-the-fact audit. `CLAUDE.md` Conventions now names it, cross-referencing the three
+      audits in `docs/audits/` as the motivating precedent
+- [x] Run `/kerd:tend` to adjudicate switch-in-flagged missing structure (2026-07-21;
+      accepted from lorg 2026-07-20). Found first: `TODO.md`, `docs/playbook.md`,
+      `docs/archive/`, `kivna/`, `.slainte` are **already all gitignored** (pre-existing,
+      not new this session) — dispatch already decided this Kerd scaffolding stays
+      local-only, never tracked in the public repo. Per-item calls:
+      - **ADOPT** `docs/archive/` — created empty locally; already gitignored so zero
+        public-repo effect, cheap, matches Archive Policy convention
+      - **OMIT** `docs/playbook.md` — redundant with what CLAUDE.md/README/roadmap already
+        cover for a docs-only plugin; local-only file no session currently reads
+      - **OMIT** `kivna/vault.json`, `kivna/sessions/` — kivna scaffolding, default-omit per
+        guardrail; no vault folder exists for dispatch and creating one adds private-fleet
+        linkage with no public benefit (kivna/ is fully gitignored regardless)
+      - **OMIT** adding literal `kivna/input/`/`kivna/output/` `.gitignore` lines — already
+        covered by the blanket `kivna/` ignore (line 2); would be redundant
+      - Also found (out of the originally-flagged list, not acted on — see TODO backlog):
+        `.loop/` and `.session-start-sha` are untracked and NOT gitignored (loop-orchestrator
+        scratch, separate from Kerd's own scaffolding)
 - [x] Competitive gap research vs. public Claude Code plugin marketplaces (2026-07-21) —
       surveyed wshobson/agents, the official marketplace, VoltAgent subagents, and the
       official plugin spec; 9 ranked recommendations in

@@ -197,8 +197,8 @@ wshobson's CI gates [P]:
   `BARE_MODEL_ALIAS`, `harness_portability`
 
 dispatch has **zero** automated validation [P] — no CI, no `claude plugin validate` invocation, no link
-checker. Its quality mechanism is hand-written audit documents (three in `docs/audits/` and
-`.scorched/`, plus the dogfood harness on an unmerged branch). Those audits are good, but they are
+checker. Its quality mechanism is hand-written audit documents (five in `docs/audits/`,
+plus the dogfood harness on an unmerged branch). Those audits are good, but they are
 manual, dated, and re-derived each time. A minimal GitHub Action running `claude plugin validate` plus
 a link check would catch the mechanical subset for near-zero maintenance and free the audits to do the
 judgement work only a human/agent can.

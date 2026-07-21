@@ -19,6 +19,12 @@ Multi-agent analysis and planning toolkit for Claude Code. Fan-out parallel spec
 - Documentation-only plugin (no runtime code)
 - Skill logic lives entirely in SKILL.md files
 - Skill references use `/dispatch:<skill>` namespace (e.g. `/dispatch:skeptic`)
+- Future edits to any `skills/*/SKILL.md` should go through `/superpowers:writing-skills`
+  (verify-before-deploy workflow) rather than an ad-hoc edit followed by a separate
+  consistency audit — see `docs/audits/consistency-audit-2026-07-18.md`,
+  `docs/audits/consistency-audit-2026-07-19.md`, and
+  `docs/audits/skill-behavior-verification-2026-07-21.md` for the cost of the ad-hoc pattern
+  this replaces
 
 ## Release Checklist
 

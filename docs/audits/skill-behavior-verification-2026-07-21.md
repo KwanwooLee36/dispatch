@@ -1,8 +1,8 @@
 # Dispatch Skill-Behavior Verification — 2026-07-21
 
 Behavioral trace of all six `skills/*/SKILL.md` files against themselves, `README.md`, and
-`CLAUDE.md`. Unlike the two prior consistency audits (`.scorched/consistency-audit-2026-07-18.md`,
-`.scorched/consistency-audit-2026-07-19.md`), which cross-checked *stated facts* (paths, rosters,
+`CLAUDE.md`. Unlike the two prior consistency audits (`docs/audits/consistency-audit-2026-07-18.md`,
+`docs/audits/consistency-audit-2026-07-19.md`), which cross-checked *stated facts* (paths, rosters,
 namespaces), this pass walks each **Step-by-step Invocation flow as an executor would** and asks:
 can an agent follow this literally and produce the promised artifact?
 
