@@ -5,13 +5,13 @@ description: Use when the user says 'recon', 'competitor research', 'market rese
 
 # Recon
 
-Competitive deep-dive. Reads competitor names from a prior `/skeptic` run, researches each competitor in depth, synthesizes into gap analysis + differentiator map + actionable backlog items with design suggestions.
+Competitive deep-dive. Reads competitor names from a prior `/dispatch:skeptic` run, researches each competitor in depth, synthesizes into gap analysis + differentiator map + actionable backlog items with design suggestions.
 
 ## Invocation
 
 ```
-/dispatch:recon         # Full mode — one Opus agent per competitor, parallel
-/dispatch:recon quick   # Quick mode — single Sonnet agent, all competitors sequential
+/dispatch:recon        # Full mode — one Opus agent per competitor, parallel
+/dispatch:recon quick  # Quick mode — single Sonnet agent, all competitors sequential
 ```
 
 ## Input
@@ -22,13 +22,13 @@ Competitive deep-dive. Reads competitor names from a prior `/skeptic` run, resea
 
 Glob for `.skeptic/report-*.md` in cwd. Select the most recent by filename date. If none exists:
 
-> **Error:** "Run `/skeptic` first. Recon needs concept agent findings."
+> **Error:** "Run `/dispatch:skeptic` first. Recon needs concept agent findings."
 
 ### Step 2: Validate Project Identity
 
 Read the target project's README (first heading or title). Compare against the report content. If the report references a different project name:
 
-> **Error:** "Skeptic report appears to be from a different project. Run `/skeptic` in this project first."
+> **Error:** "Skeptic report appears to be from a different project. Run `/dispatch:skeptic` in this project first."
 
 ### Step 3: Extract Competitor List
 
@@ -40,7 +40,7 @@ Parse the Concept & Strategy section of the report. Competitors appear in Market
 
 If no Concept & Strategy section exists, or findings contain no named alternatives:
 
-> **Error:** "Could not extract competitor list from skeptic report. Ensure `/skeptic` was run with the concept agent included."
+> **Error:** "Could not extract competitor list from skeptic report. Ensure `/dispatch:skeptic` was run with the concept agent included."
 
 If competitors extracted successfully, print:
 
@@ -55,8 +55,8 @@ Proceeding with recon.
 
 | Mode | Model | Dispatch |
 |------|-------|----------|
-| Full | opus | One agent per competitor, parallel (max 10 concurrent) |
-| Quick | sonnet | Single agent, all competitors sequential |
+| Full | Opus | One agent per competitor, parallel (max 10 concurrent) |
+| Quick | Sonnet | Single agent, all competitors sequential |
 
 **Full mode**: Dispatch one Opus agent per competitor in parallel via Agent tool. If >10 competitors, batch in waves of 10 (sequential waves, parallel within each wave). Log batch progress.
 
@@ -416,15 +416,13 @@ Print:
 ═══════════════════════════════════════════════
 ```
 
-### Step 10: Teardown
-
 ## Failure Modes
 
 | Failure | Behavior |
 |---------|----------|
-| No skeptic report exists | Error: "No skeptic report found. Run `/skeptic` first." |
-| Report from different project | Error: "Skeptic report appears to be from a different project. Run `/skeptic` in this project first." |
-| No Concept & Strategy section in report | Error: "Could not extract competitor list from skeptic report. Ensure `/skeptic` was run with the concept agent included." |
+| No skeptic report exists | Error: "Run `/dispatch:skeptic` first. Recon needs concept agent findings." |
+| Report from different project | Error: "Skeptic report appears to be from a different project. Run `/dispatch:skeptic` in this project first." |
+| No Concept & Strategy section in report | Error: "Could not extract competitor list from skeptic report. Ensure `/dispatch:skeptic` was run with the concept agent included." |
 | No competitors found in report | Warn: "Concept agent found no competitors. Market may be genuinely open, or run skeptic with broader scope." |
 | WebSearch unavailable | Degrade to WebFetch only. Note reduced discovery in console summary |
 | Individual competitor agent fails | Report which competitor couldn't be researched. Continue with others. Synthesis flags as "incomplete research" |

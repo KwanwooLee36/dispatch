@@ -1,6 +1,6 @@
 ---
 name: skeptic
-description: Use when the user says 'skeptic', 'skeptic fix', 'roast my code', 'critique this project', 'find flaws', 'what's wrong with this', or wants adversarial review of architecture, design, code quality, security, performance, developer experience, testing, or project viability. Spawns parallel specialist critics biased against the project. Also fixes Actionable Now findings via '/skeptic fix'.
+description: Use when the user says 'skeptic', 'skeptic fix', 'roast my code', 'critique this project', 'find flaws', 'what's wrong with this', or wants adversarial review of architecture, design, code quality, security, performance, developer experience, testing, or project viability. Spawns parallel specialist critics biased against the project. Also fixes Actionable Now findings via '/dispatch:skeptic fix'.
 ---
 
 # Skeptic
@@ -10,32 +10,32 @@ Adversarial multi-agent review. Every specialist is biased against the project a
 ## Invocation
 
 ```
-/skeptic          # Interactive menu — choose agents
-/skeptic full     # All 8 agents
-/skeptic quick    # All 8 agents, capped exploration depth
-/skeptic fix      # Auto-fix Actionable Now items from latest report
-/skeptic plan     # Overarching strategic plan from latest report
-/skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|debt
-/skeptic plan help    # List available plan subcommands
-/skeptic <names>  # Specific agents: arch design code security perf dx concept test
+/dispatch:skeptic              # Interactive menu — choose agents
+/dispatch:skeptic full         # All 8 agents
+/dispatch:skeptic quick        # All 8 agents, capped exploration depth
+/dispatch:skeptic fix          # Auto-fix Actionable Now items from latest report
+/dispatch:skeptic plan         # Overarching strategic plan from latest report
+/dispatch:skeptic plan <type>  # Category plan: arch|design|code|security|perf|dx|test|concept|debt
+/dispatch:skeptic plan help    # List available plan subcommands
+/dispatch:skeptic <names>      # Specific agents: arch design code security perf dx concept test
 ```
 
 ## Agent Roster
 
 | Agent | Alias | Model | Scope | Hunts For |
 |-------|-------|-------|-------|-----------|
-| Architecture | `arch` | opus | Project structure, module boundaries, dependencies, coupling | Monolith smell, circular deps, wrong abstractions, scaling walls, over/under-engineering |
-| Design | `design` | opus | Patterns, abstractions, intent clarity, API shape | Leaky abstractions, pattern misuse, unclear intent, inconsistent mental models, premature generalization |
-| Code Quality | `code` | sonnet | All source files | Deprecated deps, dead code, complexity, duplication, bad naming, missing types, style violations |
-| Security | `security` | opus | Auth, input handling, secrets, dependencies, config | Injection points, auth bypass, secrets in code, insecure defaults, vulnerable deps, OWASP top 10 |
-| Performance | `perf` | sonnet | Hot paths, data access, resource usage, algorithms | N+1 queries, unnecessary allocations, missing caching, O(n^2) where O(n) exists, resource leaks |
-| DX/Ergonomics | `dx` | sonnet | Public APIs, naming, docs, onboarding, error messages, UX tooling | Confusing APIs, poor discoverability, missing docs, bad error messages, onboarding friction, broken/missing UX test tooling |
-| Concept & Strategy | `concept` | opus | Project purpose, target audience, market positioning, feasibility, differentiation, naming/branding signals, scope ambition vs. execution state | Unclear value proposition, saturated market with no differentiator, scope too ambitious for team/stack, naming that confuses or mispositions, solving a problem nobody has, feature set that doesn't match claimed audience, missing moat, better alternatives already exist |
-| Testing | `test` | sonnet | Test files, coverage configuration, assertions, test strategies, CI test integration | Meaningless tests, coverage gaps, missing edge cases, test-production divergence, untested critical paths, over-mocking, flaky patterns, missing test types (unit/integration/e2e), assertion-free tests, tests that can never fail |
+| Architecture | `arch` | Opus | Project structure, module boundaries, dependencies, coupling | Monolith smell, circular deps, wrong abstractions, scaling walls, over/under-engineering |
+| Design | `design` | Opus | Patterns, abstractions, intent clarity, API shape | Leaky abstractions, pattern misuse, unclear intent, inconsistent mental models, premature generalization |
+| Code Quality | `code` | Sonnet | All source files | Deprecated deps, dead code, complexity, duplication, bad naming, missing types, style violations |
+| Security | `security` | Opus | Auth, input handling, secrets, dependencies, config | Injection points, auth bypass, secrets in code, insecure defaults, vulnerable deps, OWASP top 10 |
+| Performance | `perf` | Sonnet | Hot paths, data access, resource usage, algorithms | N+1 queries, unnecessary allocations, missing caching, O(n^2) where O(n) exists, resource leaks |
+| DX/Ergonomics | `dx` | Sonnet | Public APIs, naming, docs, onboarding, error messages, UX tooling | Confusing APIs, poor discoverability, missing docs, bad error messages, onboarding friction, broken/missing UX test tooling |
+| Concept & Strategy | `concept` | Opus | Project purpose, target audience, market positioning, feasibility, differentiation, naming/branding signals, scope ambition vs. execution state | Unclear value proposition, saturated market with no differentiator, scope too ambitious for team/stack, naming that confuses or mispositions, solving a problem nobody has, feature set that doesn't match claimed audience, missing moat, better alternatives already exist |
+| Testing | `test` | Sonnet | Test files, coverage configuration, assertions, test strategies, CI test integration | Meaningless tests, coverage gaps, missing edge cases, test-production divergence, untested critical paths, over-mocking, flaky patterns, missing test types (unit/integration/e2e), assertion-free tests, tests that can never fail |
 
 ### Model Strategy
 
-- **Opus (claude-opus-4-6)**: Architecture, Design, Security, Concept & Strategy, Synthesis — require deep reasoning, sustained adversarial persona, nuanced judgment
+- **Opus**: Architecture, Design, Security, Concept & Strategy, Synthesis — require deep reasoning, sustained adversarial persona, nuanced judgment
 - **Sonnet**: Code Quality, Performance, DX, Testing — more pattern-matching, structured output
 - **Quick mode override**: All agents use Sonnet for speed. Prints warning: "Quick mode uses Sonnet for all agents. Output quality may be lower than full review."
 
@@ -46,7 +46,7 @@ digraph skeptic_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /skeptic" shape=doublecircle];
+    start [label="User invokes /dispatch:skeptic" shape=doublecircle];
     menu [label="Present agent selection menu\n(AskUserQuestion)"];
     quick_check [label="Quick mode?" shape=diamond];
     history [label="Load .skeptic/ history\n(if exists)"];
@@ -80,7 +80,7 @@ digraph skeptic_flow {
 
 ### Step 1: Agent Selection
 
-If user passed args (`/skeptic full`, `/skeptic arch code`), skip menu. Otherwise:
+If user passed args (`/dispatch:skeptic full`, `/dispatch:skeptic arch code`), skip menu. Otherwise:
 
 Use **AskUserQuestion** with multiSelect:
 
@@ -119,7 +119,7 @@ Spawn all selected agents **in parallel** using the Agent tool with the `model` 
 
 **Model assignment** (pass as `model` parameter to Agent tool):
 - `model: "opus"` → Architecture, Design, Security, Concept & Strategy
-- `model: "sonnet"` → Code Quality, Performance, DX
+- `model: "sonnet"` → Code Quality, Performance, DX, Testing
 
 **Quick mode**:
 - ALL agents use `model: "sonnet"` regardless of roster defaults
@@ -560,15 +560,17 @@ After writing the report, automatically persist Future Work triage items to the 
    4. Report: Print count of items added. If all duplicates: "All Future Work items already in backlog. Nothing added."
    5. Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
 
-**Permissions**: This step uses Read, Glob, Grep, Write (TODO.md or docs/roadmap.md only — these are the only places skeptic writes outside `.skeptic/`).
+**Permissions**: This step uses Read, Glob, Grep, Write — and writes only to `TODO.md` or `docs/roadmap.md`.
+
+Across the whole skill, skeptic writes outside `.skeptic/` in exactly four places: `TODO.md` and `docs/roadmap.md` (this step), `docs/designs/` (the design-doc persistence offers in `/dispatch:skeptic plan`), and an appended `## Design Docs` section in the project `CLAUDE.md` (first `docs/designs/` creation only). `/dispatch:skeptic fix` additionally edits source files, by definition.
 
 ### Step 7: Suggest Plan
 
-After output and Future Work persistence, suggest running `/skeptic plan` to generate actionable remediation roadmaps from the findings:
+After output and Future Work persistence, suggest running `/dispatch:skeptic plan` to generate actionable remediation roadmaps from the findings:
 
 ```
-  → Run `/skeptic plan` to generate prioritized fix plans from these findings.
-    Or target a specific category: `/skeptic plan arch`, `/skeptic plan security`, etc.
+  → Run `/dispatch:skeptic plan` to generate prioritized fix plans from these findings.
+    Or target a specific category: `/dispatch:skeptic plan arch`, `/dispatch:skeptic plan security`, etc.
 ```
 
 This is informational only — do not auto-invoke plan mode.
@@ -604,7 +606,7 @@ Skeptic reviews should be noted in `kivna/sessions/` session logs under "What Wa
 
 ### Slainte Overlap
 
-`/kerd:slainte` is a read-only health audit. `/skeptic` is an adversarial stress test. They complement — slainte reports facts, skeptic argues against you. If both are available, skeptic should not duplicate slainte's scope but should be harsher in interpretation.
+`/kerd:slainte` is a read-only health audit. `/dispatch:skeptic` is an adversarial stress test. They complement — slainte reports facts, skeptic argues against you. If both are available, skeptic should not duplicate slainte's scope but should be harsher in interpretation.
 
 ## Agent Context & Invocation
 
@@ -658,19 +660,19 @@ Synthesis deduplicates by matching on: same file + same severity + similar title
 - **Agent returns empty**: If a specialist finds zero issues (unlikely with max hostility), synthesis notes it as suspicious and flags the category for manual review.
 - **Read-only project**: Skill functions normally (agents only read). File write to `.skeptic/` may fail — see Failure Modes table.
 
-## Fix Protocol (`/skeptic fix`)
+## Fix Protocol (`/dispatch:skeptic fix`)
 
-Separate command, separate philosophy. Skeptic critiques; `/skeptic fix` acts on those critiques. Fix is opt-in, never runs automatically, and only touches findings already classified as Actionable Now by synthesis.
+Separate command, separate philosophy. Skeptic critiques; `/dispatch:skeptic fix` acts on those critiques. Fix is opt-in, never runs automatically, and only touches findings already classified as Actionable Now by synthesis.
 
 ### Invocation
 
 ```
-/skeptic fix    # reads latest report, fixes all Actionable Now items
+/dispatch:skeptic fix    # reads latest report, fixes all Actionable Now items
 ```
 
 ### Flow
 
-1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If none exists: error "No skeptic report found. Run `/skeptic` first."
+1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If none exists: error "No skeptic report found. Run `/dispatch:skeptic` first."
 2. **Parse Actionable Now**: Extract findings from the `### Actionable Now` section of the Triage block. If empty: "No Actionable Now items. Nothing to fix."
 3. **Cluster by file**: Group findings by their `Where` field file path. Findings affecting the same file go in one cluster. `project-wide` findings get their own single-item cluster. Goal: no two worktrees touch the same file.
 4. **Dispatch fix agents**: Spawn one Sonnet subagent per cluster, all in parallel, each with `isolation: "worktree"`:
@@ -724,11 +726,11 @@ You are a fix agent. Implement the minimum change to resolve these findings.
   Diff: git diff HEAD~N to review all changes
 
   Remaining findings by category:
-    arch: N  |  design: N  |  code: N  |  security: N  |  perf: N  |  dx: N  |  test: N
+    arch: N  |  design: N  |  code: N  |  security: N  |  perf: N  |  dx: N  |  test: N  |  concept: N
     repeat offenders: N (across M reports)
 
-  Run /skeptic plan for a unified improvement roadmap.
-  Or: /skeptic plan arch|design|code|security|perf|dx|test|debt
+  Run /dispatch:skeptic plan for a unified improvement roadmap.
+  Or: /dispatch:skeptic plan arch|design|code|security|perf|dx|test|concept|debt
 ═══════════════════════════════════════════════
 ```
 
@@ -738,52 +740,52 @@ Category counts are extracted from the report's findings by agent category tag m
 
 | Failure | Behavior |
 |---------|----------|
-| No report exists | Error: "No skeptic report found. Run `/skeptic` first." |
+| No report exists | Error: "No skeptic report found. Run `/dispatch:skeptic` first." |
 | No Actionable Now items | "No Actionable Now items. Nothing to fix." |
 | Subagent fails after 3 attempts | Skip cluster, report as unfixed |
 | Merge conflict | Abort, delete worktree/branch, report as "conflict — manual merge needed" |
 | Worktree creation fails | Fall back to sequential fixes on current branch (no isolation) |
 
-## Plan Command (`/skeptic plan`)
+## Plan Command (`/dispatch:skeptic plan`)
 
 Reads skeptic report findings and produces strategic improvement plans. Each subcommand aligns with a skeptic agent category. The overarching mode cross-references all categories.
 
 ### Argument Routing
 
 ```
-/skeptic plan                    # overarching — unified strategic plan (fan-out)
-/skeptic plan arch               # architecture roadmap
-/skeptic plan design             # pattern & abstraction redesign
-/skeptic plan code               # code quality cleanup
-/skeptic plan security           # hardening plan
-/skeptic plan perf               # optimization roadmap
-/skeptic plan dx                 # DX improvement plan
-/skeptic plan test               # testing improvement roadmap
-/skeptic plan concept            # concept & strategy roadmap
-/skeptic plan debt               # cross-report debt analysis (requires 2+ reports)
-/skeptic plan help               # print available subcommands
+/dispatch:skeptic plan           # overarching — unified strategic plan (fan-out)
+/dispatch:skeptic plan arch      # architecture roadmap
+/dispatch:skeptic plan design    # pattern & abstraction redesign
+/dispatch:skeptic plan code      # code quality cleanup
+/dispatch:skeptic plan security  # hardening plan
+/dispatch:skeptic plan perf      # optimization roadmap
+/dispatch:skeptic plan dx        # DX improvement plan
+/dispatch:skeptic plan test      # testing improvement roadmap
+/dispatch:skeptic plan concept   # concept & strategy roadmap
+/dispatch:skeptic plan debt      # cross-report debt analysis (requires 2+ reports)
+/dispatch:skeptic plan help      # print available subcommands
 ```
 
 **Routing logic**: After detecting `plan` keyword, read the next token:
 - No token → run overarching mode
 - `help` or `?` → print subcommand list with descriptions
 - Known subcommand → route to that subcommand
-- Unknown token → error: "Unknown plan type '{token}'. Run `/skeptic plan help` for options."
+- Unknown token → error: "Unknown plan type '{token}'. Run `/dispatch:skeptic plan help` for options."
 
-**`--report` flag**: If `--report filename.md` appears anywhere in args, use that report instead of latest. Example: `/skeptic plan arch --report report-2026-05-01.md`
+**`--report` flag**: If `--report filename.md` appears anywhere in args, use that report instead of latest. Example: `/dispatch:skeptic plan arch --report report-2026-05-01.md`
 
 ### Common Behavior (all subcommands)
 
 All plan subcommands share this protocol:
 
-1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If `--report` flag provided, use that file. If no report exists: error "Run `/skeptic` first. Plan needs findings to work from."
-2. **Load competitive/market intelligence** (opportunistic): Glob for `.skeptic/recon-*.md` and `.landscape/report-*.md`. If either exists, read the most recent of each. Pass as `{COMPETITIVE_INTELLIGENCE_BLOCK}` to plan agents. If neither exists, skip silently — no error, no warning.
-3. **Staleness check**: If report is >7 days old, warn: "Report is N days old. Findings may not reflect current code. Consider running `/skeptic` again." Findings from stale reports are marked as "potentially stale" in plan output. Recon/landscape reports >14 days old are marked as "potentially outdated market data."
+1. **Find report**: Glob for `.skeptic/report-*.md`, select most recent by filename date. If `--report` flag provided, use that file. If no report exists: error "Run `/dispatch:skeptic` first. Plan needs findings to work from."
+2. **Load competitive/market intelligence** (opportunistic): Glob for `.skeptic/recon-*.md` and `.landscape/survey-*.md`. If either exists, read the most recent of each. Pass as `{COMPETITIVE_INTELLIGENCE_BLOCK}` to plan agents. If neither exists, skip silently — no error, no warning.
+3. **Staleness check**: If report is >7 days old, warn: "Report is N days old. Findings may not reflect current code. Consider running `/dispatch:skeptic` again." Findings from stale reports are marked as "potentially stale" in plan output. Recon/landscape reports >14 days old are marked as "potentially outdated market data."
 4. **Codebase verification**: Confirm key findings still exist in the codebase. Grep/Read referenced files and patterns. Flag findings that no longer match as "potentially resolved."
 5. **Extract findings**: Parse report for findings matching the relevant agent category.
 6. **Plan output**: Produce plan with prioritized items, affected files, effort estimates, verification commands. Each plan item cites its source finding (e.g., "Source: Architecture §3 — Circular dependency between auth and user modules"). When competitive intelligence is available, plan items reference market context where relevant (e.g., "Competitors X and Y already solve this with Z approach").
 7. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
-7. **Offer design doc persistence**: After writing the plan, offer to persist as a project design doc:
+8. **Offer design doc persistence**: After writing the plan, offer to persist as a project design doc:
    ```
    Save as project design doc? This makes findings available to future agents
    and implementation sessions.
@@ -954,7 +956,7 @@ Agent receives neutral arbiter framing (see above). Prioritizes by risk exposure
 
 ### plan concept — Concept & Strategy Roadmap
 
-**Agent task**: Single Opus agent reads concept & strategy findings from the skeptic report. Unlike other plan agents that work from code-level findings, this agent works primarily from strategic findings (positioning clarity, market fit, differentiation, audience alignment, scope feasibility, naming/branding). The agent also reads recon reports (`.skeptic/recon-*.md`) and landscape reports (`.landscape/report-*.md`) as **primary inputs**, not just opportunistic context — competitive intelligence is essential for strategic planning. For each finding, produces: (1) the strategic gap and its business impact (why this hurts adoption, retention, or differentiation); (2) a concrete repositioning or alignment action with specific deliverables (README rewrite, landing page copy, feature scope cut, naming change); (3) competitive context — how competitors handle this dimension and what that implies for this project; (4) effort and reversibility (renaming is low-effort high-reversibility; pivoting audience is high-effort low-reversibility); (5) a prioritized roadmap ordered by market urgency × effort, where competitive table-stakes gaps and unclear value propositions rank highest.
+**Agent task**: Single Opus agent reads concept & strategy findings from the skeptic report. Unlike other plan agents that work from code-level findings, this agent works primarily from strategic findings (positioning clarity, market fit, differentiation, audience alignment, scope feasibility, naming/branding). The agent also reads recon reports (`.skeptic/recon-*.md`) and landscape reports (`.landscape/survey-*.md`) as **primary inputs**, not just opportunistic context — competitive intelligence is essential for strategic planning. For each finding, produces: (1) the strategic gap and its business impact (why this hurts adoption, retention, or differentiation); (2) a concrete repositioning or alignment action with specific deliverables (README rewrite, landing page copy, feature scope cut, naming change); (3) competitive context — how competitors handle this dimension and what that implies for this project; (4) effort and reversibility (renaming is low-effort high-reversibility; pivoting audience is high-effort low-reversibility); (5) a prioritized roadmap ordered by market urgency × effort, where competitive table-stakes gaps and unclear value propositions rank highest.
 
 Agent receives neutral arbiter framing (see above). Prioritizes by market impact — a confused value proposition outranks a suboptimal feature name.
 
@@ -972,7 +974,7 @@ Agent receives neutral arbiter framing (see above). Prioritizes by market impact
 
 ### plan debt — Technical Debt Analysis
 
-**Agent task**: Single Opus agent reads ALL `.skeptic/report-*.md` files (glob pattern), not just latest. REQUIRES 2+ reports; if only 1 report exists, error: "Need 2+ reports for trend analysis. Run `/skeptic` again after some changes." Reports >90 days old flagged as "historical" but NOT downgraded — they show when issues first appeared. No upper age bound.
+**Agent task**: Single Opus agent reads ALL `.skeptic/report-*.md` files (glob pattern), not just latest. REQUIRES 2+ reports; if only 1 report exists, error: "Need 2+ reports for trend analysis. Run `/dispatch:skeptic` again after some changes." Reports >90 days old flagged as "historical" but NOT downgraded — they show when issues first appeared. No upper age bound.
 
 Produces: (1) timeline when each finding first appeared and severity evolution; (2) repeat offender clusters grouped by theme; (3) per cluster: root cause, compound interest effect, fix-once vs. ongoing cost, ROI ranking; (4) debt budget recommendation ("Allocate X% of next sprint to these N items"); (5) trend summary per-category (↑ worsening, → stable, ↓ improving); (6) resolved debt — findings gone from newer reports (positive signal).
 

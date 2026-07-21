@@ -10,9 +10,9 @@ Multi-dimensional migration risk analysis. Spawns five parallel specialist agent
 ## Invocation
 
 ```
-/migrate "Express to Fastify"          # Full analysis
-/migrate quick "webpack to vite"        # Quick mode (Sonnet agents)
-/migrate                                 # Interactive prompt for migration intent
+/dispatch:migrate "Express to Fastify"     # Full analysis
+/dispatch:migrate quick "webpack to vite"  # Quick mode (Sonnet agents)
+/dispatch:migrate                          # Interactive prompt for migration intent
 ```
 
 ## Input Parsing
@@ -26,7 +26,7 @@ Extract source and target from the migration intent string. Warn if codebase has
 ## Agent Roster
 
 | Agent | Dimension | Model | Investigates |
-|-------|-----------|-------|-------------|
+|-------|-----------|-------|--------------|
 | API Surface | Compatibility & transformation | Opus | Import/export analysis, API shape comparison, transformation rules for breaking changes |
 | Dependencies | Package ecosystem alignment | Sonnet | package.json/Cargo.toml analysis, replacement package research, version compatibility |
 | Tests | Framework & coverage migration | Sonnet | Test files, runner config, coverage gaps, test migration effort |
@@ -46,7 +46,7 @@ digraph migrate_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /migrate" shape=doublecircle];
+    start [label="User invokes /dispatch:migrate" shape=doublecircle];
     parse [label="Parse migration intent\nExtract source → target"];
     validate [label="Validate codebase\nCheck file count"];
     warn [label="Warn if minimal\n(<10 files)"];
@@ -74,9 +74,9 @@ digraph migrate_flow {
 ### Step 1: Parse Migration Intent
 
 Extract source and target from invocation:
-- `/migrate "Express to Fastify"` → source="Express", target="Fastify"
-- `/migrate "webpack→vite"` → source="webpack", target="vite"
-- `/migrate` → prompt user: "What migration are you planning? (e.g., 'React to Preact', 'PostgreSQL to MongoDB')"
+- `/dispatch:migrate "Express to Fastify"` → source="Express", target="Fastify"
+- `/dispatch:migrate "webpack→vite"` → source="webpack", target="vite"
+- `/dispatch:migrate` → prompt user: "What migration are you planning? (e.g., 'React to Preact', 'PostgreSQL to MongoDB')"
 
 Error if source = target: "Source and target are the same. No migration needed."
 
@@ -182,10 +182,10 @@ Steps should respect dependency order (e.g., dependency migrations before code c
 Merge all findings from the five dimension reports into a unified risk matrix. Format:
 
 ```
-| Dimension      | Finding Title                    | Severity | Likelihood | Impact | Risk Level |
-|----------------|---------------------------------|----------|-----------|--------|------------|
-| API Surface    | Express middleware pattern change| HIGH     | HIGH      | HIGH   | CRITICAL   |
-| Dependencies   | No webpack replacement for X      | MEDIUM   | MEDIUM    | HIGH   | HIGH       |
+| Dimension | Finding Title | Severity | Likelihood | Impact | Risk Level |
+|-----------|---------------|----------|------------|--------|------------|
+| API Surface | Express middleware pattern change | HIGH | HIGH | HIGH | CRITICAL |
+| Dependencies | No webpack replacement for X | MEDIUM | MEDIUM | HIGH | HIGH |
 ```
 
 Rules for this matrix:
@@ -233,8 +233,8 @@ Produce this exact format:
 
 ## Risk Matrix
 
-| Dimension      | Finding Title | Severity | Likelihood | Impact | Risk Level |
-|----------------|---------------|----------|-----------|--------|------------|
+| Dimension | Finding Title | Severity | Likelihood | Impact | Risk Level |
+|-----------|---------------|----------|------------|--------|------------|
 ...
 
 ## Cross-Cutting Landmines

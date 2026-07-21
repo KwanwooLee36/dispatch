@@ -38,8 +38,18 @@ Concept & Strategy agent added to skeptic plan mode.
       (main is 2.2.3), relocate the two tracked `.scorched/dogfood-report-*.md` out of the
       git-ignored dir, amend CLAUDE.md's "documentation-only (no runtime code)" line for
       `tests/dogfood/`'s `python3` verifier
-- [ ] Fix the still-open consistency findings (F2, F4–F12) and the new behavior findings
-      (B1–B17) — see the two `.scorched/consistency-audit-*.md` reports and
+- [x] Fix the still-open consistency findings F2, F4–F12 (2026-07-21) — landscape `survey-*`
+      glob, Testing agent model, skeptic write-scope claim, `concept` plan type, `/dispatch:`
+      namespace made canonical repo-wide (verified against `plugin.json`/`marketplace.json`),
+      stale pinned model IDs, unified recon/tribunal error wording, cartograph Domain
+      supplement, tribunal "four jobs", duplicate step 7, empty recon Teardown; plus a
+      cosmetic table/invocation-block normalization across all 6 SKILL.md. Bumped 2.2.3 → 2.2.4
+- [x] Trigger-overlap audit (2026-07-21) — 6 description overlaps (O1–O6) with disambiguation
+      recommendations in `docs/audits/trigger-overlap-audit-2026-07-21.md`; O6 recorded as a
+      deliberate overlap, not to be "fixed"
+- [ ] Apply the O1–O4 disambiguators to the six `description:` lines — user-facing change,
+      needs its own version bump
+- [ ] Fix the new behavior findings (B1–B17) — see
       `docs/audits/skill-behavior-verification-2026-07-21.md`. Prioritise the MAJORs: B1–B6, B9
 
 ### Milestone 2.2: Authoring workflow adoption
@@ -61,6 +71,8 @@ Concept & Strategy agent added to skeptic plan mode.
 - [ ] Fix the release-checklist / manifest mismatch: `CLAUDE.md` instructs bumping a
       `version` field that `marketplace.json` does not have; add `$schema` + `displayName`
       to `plugin.json`. Rec. 3 of the gap research
+- [ ] Backfill `CHANGELOG.md` — its newest band is `[2.2.0]`; versions 2.2.1, 2.2.2, 2.2.3 and
+      2.2.4 shipped unrecorded. Pairs with the release-checklist fix above
 - [ ] Add minimal CI (`claude plugin validate` + link check) — complements, does not replace,
       the dogfood harness. Rec. 4 of the gap research
 - [ ] Record the standing scope decline of multi-harness distribution (Codex/Cursor/Gemini)
@@ -84,7 +96,8 @@ owner decision, not a committed item:
       8 critics with the diff as scope object — the one capability gap a user might switch
       plugins over (rec. 6)
 - [ ] `CONTRIBUTING.md` + an authoring doc capturing the fan-out contract and the
-      `Use when …` trigger convention (rec. 7)
+      `Use when …` trigger convention (rec. 7) — should absorb the disambiguation rules from
+      `docs/audits/trigger-overlap-audit-2026-07-21.md` so new skills do not re-collide
 - [ ] Dynamic fan-out width — pick the skeptic roster from repo signals instead of always
       spending 8 critics. Resolve before adding any 9th/10th critic (rec. 8)
 - [ ] New-skill candidates, none urgent: incident-response/postmortem fan-out, standalone

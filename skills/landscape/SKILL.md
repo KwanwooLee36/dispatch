@@ -10,9 +10,9 @@ Domain and market research survey. Spawns parallel research agents across four d
 ## Invocation
 
 ```
-/landscape "real-time collaboration tools"     # Full mode — 4 agents, 5-10 searches each
-/landscape quick "state management"             # Quick mode — 4 agents, 3-5 searches each
-/landscape                                      # Interactive — prompts for domain
+/dispatch:landscape "real-time collaboration tools"  # Full mode — 4 agents, 5-10 searches each
+/dispatch:landscape quick "state management"         # Quick mode — 4 agents, 3-5 searches each
+/dispatch:landscape                                  # Interactive — prompts for domain
 ```
 
 ## Input Parsing
@@ -37,8 +37,8 @@ Four parallel agents, one per dimension. Each receives identical domain input pl
 
 | Mode | Model | Dispatch |
 |------|-------|----------|
-| Full | sonnet | 4 agents in parallel (solutions, approaches, community, business) |
-| Quick | sonnet | 4 agents in parallel (same agents, token-capped prompts) |
+| Full | Sonnet | 4 agents in parallel (solutions, approaches, community, business) |
+| Quick | Sonnet | 4 agents in parallel (same agents, token-capped prompts) |
 
 All Sonnet in both modes.
 
@@ -216,7 +216,7 @@ Merge all solutions from the Solutions agent into a segmented taxonomy. Group by
 Build a feature/attribute matrix comparing top 3-5 solutions (pick the most mature or market-leading ones):
 
 | Feature | Solution A | Solution B | Solution C | Consensus |
-|---------|-----------|-----------|-----------|-----------|
+|---------|------------|------------|------------|-----------|
 | Real-time sync | Yes | Yes | No | Table stake |
 | Offline support | No | Yes | Yes | Emerging standard |
 | Pricing | $X/mo | Open source | Free tier | Varies |
@@ -244,7 +244,7 @@ Cross-reference all four dimensions:
 Rank emerging opportunities (blue ocean spaces, unmet needs):
 
 | Opportunity | Market Gap | Feasibility | Community Signal | Rank |
-|------------|-----------|------------|-----------------|------|
+|-------------|------------|-------------|------------------|------|
 | [Opportunity] | [Gap it fills] | Easy/Med/Hard | [Is community asking for this?] | 1 |
 
 Rank by: (community signal × market gap) / feasibility. Be opinionated.
@@ -279,7 +279,7 @@ If a team enters this space, how should they position? Based on gaps, sentiment,
 ## Opportunity Ranking
 
 | Opportunity | Gap | Feasibility | Community Signal | Rank |
-|------------|-----|------------|-----------------|------|
+|-------------|-----|-------------|------------------|------|
 
 ## Positioning Recommendations
 
@@ -313,7 +313,7 @@ digraph landscape_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /landscape" shape=doublecircle];
+    start [label="User invokes /dispatch:landscape" shape=doublecircle];
     parse [label="Parse domain + mode\n(full/quick)"];
     validate [label="Validate domain\n(2-10 words)"];
     invalid [label="Domain too broad/short\nSuggest narrowing" shape=box style=filled fillcolor=lightcoral];
@@ -531,4 +531,4 @@ and implementation sessions.
 - **Community is small/nonexistent**: Synthesis flags as "emerging space — limited practitioner feedback."
 - **Empty cwd (pure research, no project context)**: Works fine. Agents skip optional project context reads.
 - **Large cwd with existing code**: Agents can read project code for context, but landscape focuses on external market research.
-- **User wants to research their own project as domain**: Example: `/landscape "dispatch plugin system"` in the dispatch repo. Works fine — agents research the broader market for "plugin systems" while optional code reads provide dispatch-specific context for gap analysis.
+- **User wants to research their own project as domain**: Example: `/dispatch:landscape "dispatch plugin system"` in the dispatch repo. Works fine — agents research the broader market for "plugin systems" while optional code reads provide dispatch-specific context for gap analysis.

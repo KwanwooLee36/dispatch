@@ -10,19 +10,19 @@ Structured multi-perspective decision analysis. Spawns competing advocate agents
 ## Invocation
 
 ```
-/tribunal "Postgres vs DynamoDB"
-/tribunal "monolith vs microservices vs modular monolith"
-/tribunal                              # Prompts interactively for decision and options
+/dispatch:tribunal "Postgres vs DynamoDB"
+/dispatch:tribunal "monolith vs microservices vs modular monolith"
+/dispatch:tribunal                              # Prompts interactively for decision and options
 ```
 
 ## Input Parsing
 
-If user provides quoted string (`/tribunal "option1 vs option2 vs option3"`):
+If user provides quoted string (`/dispatch:tribunal "option1 vs option2 vs option3"`):
 - Split on `vs` / `or` / commas (case-insensitive split boundaries, trim whitespace)
 - Extract options and validate count (2-4 required)
 - Error if outside range: "Tribunal requires 2-4 options. You provided X."
 
-If user provides no args (`/tribunal`):
+If user provides no args (`/dispatch:tribunal`):
 - Use **AskUserQuestion** to prompt for the decision title and 2-4 options interactively
 - Store parsed options and proceed
 
@@ -99,7 +99,7 @@ You are the Lead Decision Analyst. You have received advocate reports arguing fo
 
 **Competing options**: {ALL_OPTIONS}
 
-**You have two jobs:**
+**You have four jobs:**
 
 #### Job 1: Comparison Matrix
 
@@ -188,7 +188,7 @@ digraph tribunal_flow {
     rankdir=TB;
     node [shape=box];
 
-    start [label="User invokes /tribunal" shape=doublecircle];
+    start [label="User invokes /dispatch:tribunal" shape=doublecircle];
     parse [label="Parse input / AskUserQuestion\nExtract 2-4 options"];
     validate [label="Validate option count\n(2-4 required)" shape=diamond];
     error1 [label="Error: Invalid count" shape=box, style=filled, fillcolor=lightcoral];
@@ -216,12 +216,12 @@ digraph tribunal_flow {
 
 ### Step 1: Parse Input / Prompt for Decision
 
-If user provided `/tribunal "option1 vs option2 vs option3"`:
+If user provided `/dispatch:tribunal "option1 vs option2 vs option3"`:
 - Split on `vs` (case-insensitive)
 - Trim whitespace from each option
 - Extract list of options
 
-If user provided `/tribunal` with no args:
+If user provided `/dispatch:tribunal` with no args:
 - Use **AskUserQuestion** with text inputs:
   - `question`: "What decision are you making?"
   - `placeholder`: "e.g., 'Postgres vs DynamoDB'" or "Database choice"
@@ -233,8 +233,8 @@ If user provided `/tribunal` with no args:
 
 Check: `2 <= len(options) <= 4`
 
-- If < 2: Error "Tribunal requires at least 2 options. Please provide more."
-- If > 4: Error "Tribunal accepts maximum 4 options. You provided X. Pick the 4 most important."
+- If < 2: Error "Tribunal requires 2-4 options. You provided X."
+- If > 4: Error "Tribunal requires 2-4 options. You provided X."
 
 Proceed only if valid.
 
@@ -355,8 +355,8 @@ and implementation sessions.
 
 | Failure | Behavior |
 |---------|----------|
-| User provides < 2 options | Error: "Tribunal requires at least 2 options." Re-prompt. |
-| User provides > 4 options | Error: "Tribunal accepts maximum 4 options. Please pick 4." Prompt to narrow. |
+| User provides < 2 options | Error: "Tribunal requires 2-4 options. You provided X." Re-prompt. |
+| User provides > 4 options | Error: "Tribunal requires 2-4 options. You provided X." Prompt to narrow. |
 | Agent times out or crashes | Synthesis notes: "Advocate for {OPTION} did not return — that perspective is incomplete." Proceed with partial advocates. |
 | Agent output doesn't match format | Synthesis includes raw output in an "Unparsed Advocate Report" appendix. Synthesis extracts key claims if possible. |
 | Empty project (no codebase) | All advocates report with minimal context. Synthesis notes: "Project has limited codebase — decision analysis based on general principles rather than project-specific constraints." |
