@@ -52,11 +52,50 @@ Concept & Strategy agent added to skeptic plan mode.
       `docs/playbook.md`, `kivna/vault.json`, `kivna/sessions/`, `.gitignore` entries) —
       decide per item whether a public docs-only plugin adopts or intentionally omits it
       (accepted from lorg 2026-07-20)
+- [x] Competitive gap research vs. public Claude Code plugin marketplaces (2026-07-21) —
+      surveyed wshobson/agents, the official marketplace, VoltAgent subagents, and the
+      official plugin spec; 9 ranked recommendations in
+      `docs/audits/competitive-gap-research-2026-07-21.md`
+- [ ] Adopt progressive disclosure — split each skill into `SKILL.md` + `references/`
+      (all 6 exceed the 8 KB ecosystem cap; skeptic is 60.8 KB). Rec. 1 of the gap research
+- [ ] Fix the release-checklist / manifest mismatch: `CLAUDE.md` instructs bumping a
+      `version` field that `marketplace.json` does not have; add `$schema` + `displayName`
+      to `plugin.json`. Rec. 3 of the gap research
+- [ ] Add minimal CI (`claude plugin validate` + link check) — complements, does not replace,
+      the dogfood harness. Rec. 4 of the gap research
+- [ ] Record the standing scope decline of multi-harness distribution (Codex/Cursor/Gemini)
+      in `CLAUDE.md` so future lorg scans stop resurfacing it. §4F of the gap research
 
 ## Phase 3: Skill enhancements
 <!-- status: upcoming -->
 
-Deferred until a concrete new specialist, mode, or skill is proposed. Skill scheduling at
+Candidates now on the table from the 2026-07-21 competitive gap research
+(`docs/audits/competitive-gap-research-2026-07-21.md`), in its ranked order — each is an
+owner decision, not a committed item:
+
+- [ ] Adversarial-verification pass: a verifier agent that has not seen a specialist's
+      reasoning must knock findings down against a rubric before synthesis scores them
+      (rec. 2 — highest-value pattern import; consumes skeptic's existing canonical
+      finding format)
+- [ ] Haiku tier for mechanical passes (roadmap/TODO routing, console formatting, dedup
+      arithmetic); consider `inherit` for user model choice. dispatch is 16 Opus / 7 Sonnet
+      with no cheap tier (rec. 5)
+- [ ] Diff/PR-scoped review mode (`/dispatch:skeptic diff` or `pr <n>`) reusing the existing
+      8 critics with the diff as scope object — the one capability gap a user might switch
+      plugins over (rec. 6)
+- [ ] `CONTRIBUTING.md` + an authoring doc capturing the fan-out contract and the
+      `Use when …` trigger convention (rec. 7)
+- [ ] Dynamic fan-out width — pick the skeptic roster from repo signals instead of always
+      spending 8 critics. Resolve before adding any 9th/10th critic (rec. 8)
+- [ ] New-skill candidates, none urgent: incident-response/postmortem fan-out, standalone
+      test-strategy analysis, dependency/supply-chain audit, self-evaluation of dispatch's
+      own agent prompts (most on-brand), C4 diagrams in cartograph (cheapest) (rec. 9)
+
+Explicitly declined by that research: multi-harness distribution, breadth-matching large
+marketplaces, accessibility/observability critics (until dynamic width lands), and any
+runtime coordination program (breaks the documentation-only property).
+
+Otherwise deferred until a concrete new specialist, mode, or skill is proposed. Skill scheduling at
 this phase's start: `/kerd:lorg` (reassess tooling, ~21-day cadence — last run 2026-07-20),
 `/dispatch:skeptic` self-review post any minor bump, `/toolkit:switch-optimize` after any
 CLAUDE.md/workflow change, `/kerd:trim` after Milestone 2.1 closes.
