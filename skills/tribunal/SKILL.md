@@ -23,8 +23,8 @@ If user provides quoted string (`/dispatch:tribunal "option1 vs option2 vs optio
 - Error if outside range: "Tribunal requires 2-4 options. You provided X."
 
 If user provides no args (`/dispatch:tribunal`):
-- Use **AskUserQuestion** to prompt for the decision title and 2-4 options interactively
-- Store parsed options and proceed
+- Prompt in plain conversation for the decision title and 2-4 options, then wait for the reply (see Step 1 for the exact prompt). Not `AskUserQuestion` — that tool offers fixed choices, and these inputs are free text.
+- Parse the reply with the same split rule as the quoted form, then proceed
 
 **Project context is mandatory** — all advocate agents read the codebase, understand current architecture, constraints, and tech stack. Decisions are grounded in the specific project, never abstract.
 
@@ -189,7 +189,7 @@ digraph tribunal_flow {
     node [shape=box];
 
     start [label="User invokes /dispatch:tribunal" shape=doublecircle];
-    parse [label="Parse input / AskUserQuestion\nExtract 2-4 options"];
+    parse [label="Parse input / prompt in chat\nExtract 2-4 options"];
     validate [label="Validate option count\n(2-4 required)" shape=diamond];
     error1 [label="Error: Invalid count" shape=box, style=filled, fillcolor=lightcoral];
     dispatch [label="Dispatch advocate agents\nin parallel (one per option)"];
@@ -217,17 +217,24 @@ digraph tribunal_flow {
 ### Step 1: Parse Input / Prompt for Decision
 
 If user provided `/dispatch:tribunal "option1 vs option2 vs option3"`:
-- Split on `vs` (case-insensitive)
+- Split on `vs`, `or`, and commas (case-insensitive split boundaries) — same rule as Input Parsing
 - Trim whitespace from each option
 - Extract list of options
 
 If user provided `/dispatch:tribunal` with no args:
-- Use **AskUserQuestion** with text inputs:
-  - `question`: "What decision are you making?"
-  - `placeholder`: "e.g., 'Postgres vs DynamoDB'" or "Database choice"
-  - `description`: "Be specific about the decision context (new feature, migration, architecture choice, etc.)"
-  - Collect decision title in field 1
-  - Field 2-5: Up to 4 options (fields 2-3 required, 4-5 optional)
+- **Ask in plain conversation and wait for the reply** — the options are free text, and `AskUserQuestion` presents fixed multiple-choice options only. Do not use it here.
+- Print exactly:
+  ```
+  What decision are you making, and what are the options?
+
+  Give a short decision title, then 2-4 options — one per line, or on one line
+  separated by "vs" / "or" / commas.
+
+  Example:
+    Database choice
+    Postgres vs DynamoDB vs SQLite
+  ```
+- Parse the reply with the same split rule as the argument form. If the reply yields fewer than 2 options, ask once more with the same prompt; if it still yields fewer than 2, exit cleanly with the Step 2 error.
 
 ### Step 2: Validate Option Count
 
@@ -298,8 +305,11 @@ Print decision summary in format:
     - [Risk consideration 1]
 
   Full decision: .tribunal/decision-YYYY-MM-DD-{slug}.md
+  Design doc: offered next (Step 8)
 ═══════════════════════════════════════════════
 ```
+
+This block is the **canonical** console summary — the Console Output Format section below documents the same block plus the low-confidence addendum, not a second variant.
 
 ### Step 7: Write Full Report
 
@@ -417,32 +427,11 @@ Each agent inherits the current working directory. They have full filesystem acc
 
 ## Console Output Format
 
-Console summary printed after synthesis completes:
+Console summary printed after synthesis completes: **use the block in Step 6 verbatim** — it is the single canonical format. `KEY FACTORS` is filled with actual findings (one table-stakes agreement, one divergence point, one risk consideration), not with the category labels themselves.
 
-```
-═══════════════════════════════════════════════
-  TRIBUNAL DECISION — {YYYY-MM-DD}
-═══════════════════════════════════════════════
+Design-doc persistence is **not** a manual step and is not deferred to another tool: Step 8 offers it automatically and writes `docs/designs/tribunal-{slug}-YYYY-MM-DD.md` on confirmation.
 
-  DECISION: {DECISION_TITLE}
-
-  RECOMMENDATION: {CHOSEN_OPTION}
-  CONFIDENCE: {HIGH | MEDIUM | LOW}
-
-  OPTIONS ANALYZED:
-  {N} options submitted to advocate review
-
-  KEY FACTORS:
-    ✓ Table stakes (agreed points)
-    ✓ Divergence (where advocates disagree)
-    ✓ Risk pre-mortem (failure scenarios per option)
-
-  Full decision report: .tribunal/decision-{date}-{slug}.md
-  Design doc persistence: Optional — use /kerd:kivna save
-═══════════════════════════════════════════════
-```
-
-If confidence is LOW:
+If confidence is LOW, append:
 
 ```
   ⚠ NOTE: Low confidence. Multiple options are viable.

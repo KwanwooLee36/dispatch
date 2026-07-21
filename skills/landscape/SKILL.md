@@ -19,11 +19,15 @@ Domain and market research survey. Spawns parallel research agents across four d
 
 **Domain string**: User provides a domain/topic to research (e.g., "real-time collaboration", "state management for React", "database migration tools").
 
-**Validation rules**:
-- Length: 2-10 words. Reject strings with <2 or >10 words.
-- Overly broad domains (>10 words or keywords like "technology", "software"): Warn and suggest narrowing.
-  - Example: `❌ "technology"` → "Too broad. Try: 'web framework', 'CSS-in-JS solution', 'real-time database'"
-- Valid input: `✓ "real-time collaboration tools"`, `✓ "state management"`, `✓ "database migration"`.
+**Validation rules** — apply in this order (breadth first, then length):
+
+1. **Breadth** — reject whole-category domains at any length: bare category keywords such as `technology`, `software`, `database`, `AI`, `cloud`, `apps`, or a phrase that names an entire industry. Suggest narrower alternatives.
+   - Example: `❌ "technology"` → "Too broad. Try: 'web framework', 'CSS-in-JS solution', 'real-time database'"
+   - Example: `❌ "developer tools"` → "Too broad. Try: 'API mocking tools', 'local dev environment managers'"
+2. **Minimum length** — anything that survives the breadth check but is <2 words: error, "Domain too short. Provide 2-10 words."
+3. **Maximum length** — >10 words: **warn**, do not reject. Suggest narrowing and ask to proceed (y/n); exit only if the user declines.
+
+Valid input: `✓ "real-time collaboration tools"`, `✓ "state management"`, `✓ "database migration"`.
 
 **Mode parsing**: If user provides `quick` before or after domain string, use quick mode. Otherwise default to full mode.
 
@@ -315,7 +319,7 @@ digraph landscape_flow {
 
     start [label="User invokes /dispatch:landscape" shape=doublecircle];
     parse [label="Parse domain + mode\n(full/quick)"];
-    validate [label="Validate domain\n(2-10 words)"];
+    validate [label="Validate domain\n(breadth, then 2-10 words)"];
     invalid [label="Domain too broad/short\nSuggest narrowing" shape=box style=filled fillcolor=lightcoral];
     notice [label="Print quick mode notice\n(if quick mode)"];
     dispatch [label="Dispatch 4 research agents\n(Solutions, Approaches, Community, Business)"];
@@ -323,7 +327,8 @@ digraph landscape_flow {
     synthesis [label="Dispatch synthesis agent\n(Opus)"];
     write [label="Write to .landscape/survey-\nYYYY-MM-DD-{slug}.md"];
     summary [label="Console summary"];
-    backlog [label="Offer TODO.md backlog items"];
+    backlog [label="Offer backlog items\n(roadmap, else TODO.md)"];
+    offer [label="Offer design doc\npersistence"];
     end [label="Done" shape=doublecircle];
 
     start -> parse;
@@ -337,20 +342,23 @@ digraph landscape_flow {
     synthesis -> write;
     write -> summary;
     summary -> backlog;
-    backlog -> end;
+    backlog -> offer;
+    offer -> end;
 }
 ```
 
 ### Step 1: Parse and Validate Domain
 
 1. **Parse**: Extract domain string and mode (`quick` or `full`).
-2. **Validate**: Check domain string length:
-   - If < 2 words: Error. "Domain too short. Provide 2-10 words (e.g., 'real-time collaboration')."
-   - If > 10 words: Warn. "Domain string is long ({N} words). Consider narrowing to 2-10 words for better research focus. Proceed? (y/n)"
-   - If user declines: Exit cleanly.
-3. **Suggest narrowing** for overly broad domains:
+2. **Check breadth first** (before any length check — a broad domain is usually also a short one, and "too broad" is the more useful error):
+   - Whole-category input → Error with narrower suggestions.
    - Example input: `"technology"` → "❌ Too broad. Try: 'web framework', 'CSS-in-JS solution', 'message queue'."
    - Example input: `"database"` → "❌ Too broad. Try: 'time-series database', 'document store', 'graph database'."
+   - Example input: `"developer tools"` → "❌ Too broad. Try: 'API mocking tools', 'local dev environment managers'."
+3. **Then validate length**:
+   - If < 2 words (and not caught as too broad): Error. "Domain too short. Provide 2-10 words (e.g., 'real-time collaboration')."
+   - If > 10 words: Warn, do not reject. "Domain string is long ({N} words). Consider narrowing to 2-10 words for better research focus. Proceed? (y/n)"
+   - If user declines: Exit cleanly.
 
 ### Step 2: Print Quick Mode Notice
 
@@ -451,22 +459,37 @@ Print:
 ═══════════════════════════════════════════════
 ```
 
-### Step 8: Offer TODO.md Backlog Items
+### Step 8: Offer Backlog Items
 
-For each opportunity found in Opportunity Ranking, offer to append to TODO.md:
+For each opportunity found in Opportunity Ranking, offer to persist:
 ```
-Found X opportunities. Add to TODO.md backlog? (y/n)
+Found X opportunities. Add to the project backlog? (y/n)
 ```
 
-If user confirms:
-- Append to `TODO.md` under `### Landscape Opportunities — YYYY-MM-DD`
-- Format: `- [RESEARCH] Opportunity name — one-sentence description. See: .landscape/survey-YYYY-MM-DD-{slug}.md`
-- Deduplicate: Skip items with >70% title-only word overlap with existing entries
-- Create `TODO.md` if it doesn't exist
+If user declines: Skip silently, no error. Write nothing.
 
-If user declines: Skip silently, no error.
+If user confirms, route the items — item format in both branches:
+`- [RESEARCH] Opportunity name — one-sentence description. See: .landscape/survey-YYYY-MM-DD-{slug}.md`
 
-If TODO.md write fails: Print items to console only. Warn: "Could not write to TODO.md — items printed to console only."
+**A. Roadmap routing (preferred):** Check if `docs/roadmap.md` exists in the target project.
+
+If it exists:
+1. Read the roadmap. Find a matching milestone by topic/keyword overlap with each opportunity's title and description.
+2. Add each non-duplicate opportunity as a task under the matching milestone.
+3. If no milestone matches, add to the nearest upcoming phase under a `### Milestone: Skill Recommendations` catch-all section. Create this section if it doesn't exist.
+4. **Deduplicate**: check existing roadmap tasks for >70% word overlap on **title only**. Skip duplicates.
+5. Update the roadmap's `Last updated:` date to today.
+6. Report: `"Routed N opportunities to roadmap: X to [milestone], Y to [milestone]."`
+7. Do NOT also write these items to TODO.md backlog — roadmap is the destination.
+
+**B. TODO.md fallback:** If `docs/roadmap.md` does NOT exist:
+1. Find or create `TODO.md`: if none exists, create with `# TODO\n\n## Backlog\n` header. If it exists but has no `## Backlog` section, append one.
+2. **Deduplicate**: skip items with >70% title-only word overlap with existing entries.
+3. Append non-duplicate items under `### Landscape Opportunities — YYYY-MM-DD`.
+4. Report the count added.
+5. Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
+
+If the write fails (either destination): print items to console only. Warn: "Could not write to {destination} — items printed to console only."
 
 ### Step 9: Design Doc Persistence
 
@@ -510,15 +533,15 @@ and implementation sessions.
 
 | Failure | Behavior |
 |---------|----------|
-| Domain string too short (<2 words) | Error: "Domain too short. Provide 2-10 words." |
-| Domain string too long (>10 words) | Warn and ask to narrow. If user declines, exit. |
-| Domain is overly broad ("technology", "software") | Warn with examples of narrower domains. Proceed if user confirms. |
+| Domain is overly broad ("technology", "software", "database") | Checked **first**. Error with examples of narrower domains; do not dispatch. |
+| Domain string too short (<2 words, not caught as broad) | Error: "Domain too short. Provide 2-10 words." |
+| Domain string too long (>10 words) | Warn and ask to narrow. If user declines, exit. Never a hard reject. |
 | WebSearch unavailable | Agents fall back to WebFetch only. Note in console summary: "Limited to direct URL reads (no keyword discovery)." |
 | WebFetch unavailable | Agents use WebSearch snippets only. Note reduced detail. |
 | Individual agent times out or crashes | Synthesis receives partial reports. Flags affected dimension as "incomplete research." |
 | All agents fail | Error: "Landscape research failed. Check network/tool availability." |
 | .landscape/ directory doesn't exist | Create it. |
-| TODO.md write fails | Print backlog items to console only. Warn: "Could not write to TODO.md — items printed to console only." |
+| Backlog write fails (roadmap or TODO.md) | Print backlog items to console only. Warn: "Could not write to {destination} — items printed to console only." |
 | Same-day report collision | Use Glob to find highest existing counter. Append next counter (e.g., `-2`, `-3`). |
 
 ---

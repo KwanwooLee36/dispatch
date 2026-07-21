@@ -21,7 +21,7 @@ Concept & Strategy agent added to skeptic plan mode.
 
 ### Milestone 2.1: Consistency hardening
 <!-- status: active -->
-<!-- target: 2.2.x -->
+<!-- target: 2.3.x -->
 
 - [x] Reconstruct CHANGELOG from plugin.json history; tighten Release Checklist (32407bc)
 - [x] Exhaustive consistency audits (2026-07-18, 2026-07-19)
@@ -49,12 +49,16 @@ Concept & Strategy agent added to skeptic plan mode.
       deliberate overlap, not to be "fixed"
 - [ ] Apply the O1–O4 disambiguators to the six `description:` lines — user-facing change,
       needs its own version bump
-- [ ] Fix the new behavior findings (B1–B17) — see
-      `docs/audits/skill-behavior-verification-2026-07-21.md`. Prioritise the MAJORs: B1–B6, B9
+- [x] Fix the new behavior findings (B1–B17) (2026-07-21) — all 17 closed, none deferred:
+      landscape breadth-before-length + warn-not-reject (B1, B2), migrate ask-before-write (B3),
+      tribunal free-text prompt replaces the impossible `AskUserQuestion` call (B4), skeptic
+      inline recon now persists `.skeptic/recon-*.md` (B5), roadmap-first routing on all five
+      persistence surfaces (B6), migrate read-only tool grant (B9), plus B7/B8/B10/B11/B13–B17.
+      Release Checklist reconciled with the real `marketplace.json` shape (B12). Bumped 2.2.4 → 2.3.0
 
 ### Milestone 2.2: Authoring workflow adoption
 <!-- status: upcoming -->
-<!-- target: 2.3.0 -->
+<!-- target: 2.4.0 -->
 
 - [ ] Adopt `/superpowers:writing-skills` as the front-door for future `skills/*/SKILL.md`
       edits (accepted from lorg 2026-07-20) — replaces ad-hoc edit + after-the-fact audit
@@ -68,11 +72,12 @@ Concept & Strategy agent added to skeptic plan mode.
       `docs/audits/competitive-gap-research-2026-07-21.md`
 - [ ] Adopt progressive disclosure — split each skill into `SKILL.md` + `references/`
       (all 6 exceed the 8 KB ecosystem cap; skeptic is 60.8 KB). Rec. 1 of the gap research
-- [ ] Fix the release-checklist / manifest mismatch: `CLAUDE.md` instructs bumping a
-      `version` field that `marketplace.json` does not have; add `$schema` + `displayName`
-      to `plugin.json`. Rec. 3 of the gap research
-- [ ] Backfill `CHANGELOG.md` — its newest band is `[2.2.0]`; versions 2.2.1, 2.2.2, 2.2.3 and
-      2.2.4 shipped unrecorded. Pairs with the release-checklist fix above
+- [x] Fix the release-checklist / manifest mismatch (2026-07-21, closed as B12) — `CLAUDE.md`
+      step 1 now names `plugin.json` as the only version field and states that
+      `marketplace.json` has none; new step 2 covers what marketplace.json *is* kept in sync on
+  - [ ] Still open from Rec. 3 of the gap research: add `$schema` + `displayName` to `plugin.json`
+- [ ] Backfill `CHANGELOG.md` — its newest band is `[2.2.0]`; versions 2.2.1, 2.2.2, 2.2.3,
+      2.2.4 and 2.3.0 shipped unrecorded. Pairs with the release-checklist fix above
 - [ ] Add minimal CI (`claude plugin validate` + link check) — complements, does not replace,
       the dogfood harness. Rec. 4 of the gap research
 - [ ] Record the standing scope decline of multi-harness distribution (Codex/Cursor/Gemini)

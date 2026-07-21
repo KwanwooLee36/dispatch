@@ -48,6 +48,7 @@ digraph cartograph_flow {
     synthesis [label="Spawn synthesis agent\n(Opus)"];
     write [label="Write unified guide to\ndocs/cartograph.md"];
     console [label="Print summary to console"];
+    offer [label="Offer design doc\npersistence"];
 
     start -> parse;
     parse -> warning;
@@ -58,6 +59,7 @@ digraph cartograph_flow {
     collect -> synthesis;
     synthesis -> write;
     write -> console;
+    console -> offer;
 }
 ```
 

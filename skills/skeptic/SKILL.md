@@ -53,11 +53,13 @@ digraph skeptic_flow {
     dispatch [label="Spawn ALL selected agents\nin parallel (Agent tool)"];
     concept_returns [label="Concept agent returns" shape=diamond];
     recon_prompt [label="Prompt: Run recon?\n(AskUserQuestion)"];
-    recon_yes [label="Dispatch recon agents\n(per-competitor, parallel)"];
+    recon_yes [label="Dispatch recon agents\n(per-competitor, parallel)\n+ write .skeptic/recon-*.md"];
     wait_all [label="Wait for all agents\n+ recon (if triggered)"];
     synthesis [label="Spawn synthesis agent\n(merge, dedup, score,\nrecon intelligence)"];
     console [label="Print summary to console"];
     file [label="Write full report to\n.skeptic/report-YYYY-MM-DD.md"];
+    persist [label="Persist Future Work\n(roadmap, else TODO.md)"];
+    suggest [label="Suggest /dispatch:skeptic plan"];
 
     start -> menu;
     menu -> quick_check;
@@ -73,6 +75,8 @@ digraph skeptic_flow {
     wait_all -> synthesis;
     synthesis -> console;
     synthesis -> file;
+    file -> persist;
+    persist -> suggest;
 }
 ```
 
@@ -356,7 +360,7 @@ If CI configuration exists, evaluate:
 
 ### Step 3.5: Recon Prompt (After Concept Returns)
 
-All 8 agents dispatch in parallel (Step 3 unchanged). **Only applies when Concept & Strategy agent was selected.** When the Concept & Strategy agent returns — potentially before other agents finish — immediately prompt the user:
+The selected agents dispatch in parallel exactly as in Step 3 — this step changes nothing about that. **Only applies when the Concept & Strategy agent was among the selected agents** (all 8 in `full` mode; whichever were named for a selective invocation such as `/dispatch:skeptic arch code`). When the Concept & Strategy agent returns — potentially before other agents finish — immediately prompt the user:
 
 ```
 question: "Concept agent found competitors. Run recon for competitive deep-dive?"
@@ -373,12 +377,16 @@ options:
 
 **If user selects "Yes":**
 
-1. **Extract competitors** from concept agent's report. Parse named products/tools/libraries mentioned as competitors, incumbents, or alternatives (same extraction logic as recon SKILL.md Step 3).
-2. **Read project identity** — README, docs/, config files (same as recon SKILL.md Step 3).
+1. **Extract competitors** from concept agent's report. Parse named products/tools/libraries mentioned as competitors, incumbents, or alternatives (same extraction logic as recon SKILL.md **"Step 3: Extract Competitor List"**).
+2. **Read project identity** — README, docs/, config files (same as recon SKILL.md **"Step 3: Read Target Project Identity"**).
 3. **Dispatch competitor research agents** in parallel:
    - **Full mode**: One Opus agent per competitor (same prompt template as recon SKILL.md)
    - **Quick mode**: One Sonnet agent for all competitors (token-capped)
 4. **Collect recon results** — hold until all competitor agents return.
+5. **Persist the recon results to disk** — required, not optional. Inline recon writes the same artifact standalone recon does, so a later `/dispatch:skeptic plan` can load it:
+   - Write the collected per-competitor research to `.skeptic/recon-YYYY-MM-DD.md`, using recon SKILL.md's report format ("Step 6: Write Report"). Create `.skeptic/` if it does not exist. If a recon report already exists for today, append a counter (`recon-YYYY-MM-DD-2.md`, …) — use Glob to find the highest existing counter.
+   - Add a line under the report title noting the origin: `_Produced inline by /dispatch:skeptic — competitors sourced from the Concept & Strategy agent._`
+   - Design notes (`.skeptic/recon-designs/`) are **not** produced inline — that is standalone recon's Step 9 only. Note this in the console summary so the user knows what running `/dispatch:recon` separately would add.
 
 Other skeptic agents continue running independently during recon. Synthesis (Step 4) waits for ALL of: specialist agents + recon results (if triggered).
 
@@ -562,7 +570,7 @@ After writing the report, automatically persist Future Work triage items to the 
 
 **Permissions**: This step uses Read, Glob, Grep, Write — and writes only to `TODO.md` or `docs/roadmap.md`.
 
-Across the whole skill, skeptic writes outside `.skeptic/` in exactly four places: `TODO.md` and `docs/roadmap.md` (this step), `docs/designs/` (the design-doc persistence offers in `/dispatch:skeptic plan`), and an appended `## Design Docs` section in the project `CLAUDE.md` (first `docs/designs/` creation only). `/dispatch:skeptic fix` additionally edits source files, by definition.
+Across the whole skill, skeptic writes outside `.skeptic/` in exactly four places: `TODO.md` and `docs/roadmap.md` (this step, and the same A/B routing for Phase 1 items in the overarching `/dispatch:skeptic plan`), `docs/designs/` (the design-doc persistence offers in `/dispatch:skeptic plan`), and an appended `## Design Docs` section in the project `CLAUDE.md` (first `docs/designs/` creation only). `/dispatch:skeptic fix` additionally edits source files, by definition.
 
 ### Step 7: Suggest Plan
 
@@ -622,10 +630,14 @@ Agent({
 
 Each agent inherits the current working directory. They have full filesystem access to the target project via Read, Glob, and Grep tools. No additional context is passed — the agent discovers the project by exploring from cwd.
 
-**What agents can use**: Read, Glob, Grep, Bash (read-only commands like `git log`, `npm ls`, etc.)
-**DX agent extended access**: Bash for running project test/UX tools (Playwright, Cypress, Storybook, dev servers). Still read-only — no file modifications.
-**Testing agent extended access**: Bash for running test discovery commands (e.g., `npx vitest --list`, `cargo test -- --list`, `pytest --collect-only`). May run test suites to verify they pass. Still read-only — no file modifications.
-**Concept & Strategy agent access**: Read, Glob, Grep, WebSearch. No Bash — reads docs and researches market, does not execute code.
+Baseline for every agent, with two widenings and one narrowing — no agent's access is left to inference:
+
+**Baseline (all agents)**: Read, Glob, Grep, plus **inspection-only Bash** — commands that report state and change nothing (`git log`, `git diff`, `npm ls`, `wc`, `find`). No project tooling, no test execution.
+**DX agent — wider Bash**: additionally may run project test/UX tools (Playwright, Cypress, Storybook, dev servers). Still no file modifications.
+**Testing agent — wider Bash**: additionally may run test discovery commands (e.g., `npx vitest --list`, `cargo test -- --list`, `pytest --collect-only`) and may run test suites to verify they pass. Still no file modifications.
+**Concept & Strategy agent — no Bash, plus WebSearch**: Read, Glob, Grep, WebSearch only. Reads docs and researches market, does not execute anything.
+
+Every other agent (Architecture, Code Quality, Security, Performance) gets the baseline exactly — inspection-only Bash, nothing wider.
 **What agents must NOT do**: Write, Edit, or modify any files. They are critics, not contributors.
 
 ## Structured Finding Format
@@ -784,7 +796,7 @@ All plan subcommands share this protocol:
 4. **Codebase verification**: Confirm key findings still exist in the codebase. Grep/Read referenced files and patterns. Flag findings that no longer match as "potentially resolved."
 5. **Extract findings**: Parse report for findings matching the relevant agent category.
 6. **Plan output**: Produce plan with prioritized items, affected files, effort estimates, verification commands. Each plan item cites its source finding (e.g., "Source: Architecture §3 — Circular dependency between auth and user modules"). When competitive intelligence is available, plan items reference market context where relevant (e.g., "Competitors X and Y already solve this with Z approach").
-7. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace.
+7. **Write output**: `.skeptic/plan-{type}-YYYY-MM-DD.md`. Same-day counter per subcommand type: `plan-{type}-YYYY-MM-DD-2.md`. Each subcommand has its own counter namespace. The no-argument overarching form uses `{type}` = `overarching`, so every plan file matches `plan-*-YYYY-MM-DD.md` without exception.
 8. **Offer design doc persistence**: After writing the plan, offer to persist as a project design doc:
    ```
    Save as project design doc? This makes findings available to future agents
@@ -1032,9 +1044,9 @@ Receives all 8 category plans + historical reports (if 2+ exist for debt analysi
 3. Dispatch 8 category agents in parallel
 4. Collect all category plans
 5. Dispatch synthesis with all plans + history
-6. Write to `.skeptic/plan-YYYY-MM-DD.md`
+6. Write to `.skeptic/plan-overarching-YYYY-MM-DD.md` (`{type}` = `overarching` for the no-argument form — the `plan-{type}-…` rule in Common Behavior applies here too)
 7. Console: executive summary + Phase 1 items + effort estimate
-8. Offer TODO.md Phase 1 items (user confirms)
+8. Offer to persist Phase 1 items (user confirms first, nothing written on decline). Route via `docs/roadmap.md` when it exists, falling back to `TODO.md` `## Backlog` under `### Skeptic Plan Phase 1 — YYYY-MM-DD` — same A/B routing as Step 6: Persist Future Work
 9. Offer design doc persistence (see step 7 in Common Behavior above)
 
 #### Console Summary
@@ -1056,7 +1068,7 @@ Receives all 8 category plans + historical reports (if 2+ exist for debt analysi
 
   EFFORT: [total estimate, allocation %]
 
-  Full plan: .skeptic/plan-YYYY-MM-DD.md
+  Full plan: .skeptic/plan-overarching-YYYY-MM-DD.md
 
   For deeper competitive research: /dispatch:recon
 ═══════════════════════════════════════════════

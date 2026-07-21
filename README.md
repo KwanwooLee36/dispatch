@@ -52,7 +52,7 @@ Every specialist is biased against the project. They hunt for flaws within their
 
 ### Inline Recon
 
-When the Concept & Strategy agent identifies competitors, skeptic prompts you: "Run recon?" If you say yes, competitive research agents dispatch immediately using the same protocol as `/dispatch:recon`. Recon findings feed into synthesis, generating new findings from competitive gaps, missing moats, and positioning failures alongside the specialist critiques.
+When the Concept & Strategy agent identifies competitors, skeptic prompts you: "Run recon?" If you say yes, competitive research agents dispatch immediately using the same research protocol as `/dispatch:recon`. Recon findings feed into synthesis, generating new findings from competitive gaps, missing moats, and positioning failures alongside the specialist critiques, and are written to `.skeptic/recon-YYYY-MM-DD.md` so a later `/dispatch:skeptic plan` can load them. Standalone `/dispatch:recon` additionally produces design notes in `.skeptic/recon-designs/`; the inline path does not.
 
 ### Plan with Competitive Intelligence
 
@@ -128,7 +128,7 @@ Four parallel research agents map solutions, approaches, community insights, and
 /dispatch:landscape                                  # Interactive — prompts for domain
 ```
 
-Domain string is 2-10 words. Produces a solution catalog with positioning and pricing, approaches ranked by adoption, and an opportunity ranking of gaps and emerging patterns.
+Domain string is 2-10 words; whole-category inputs ("technology", "database") are rejected with narrower suggestions, and a longer-than-10-word domain warns rather than fails. Produces a solution catalog with positioning and pricing, approaches ranked by adoption, and an opportunity ranking of gaps and emerging patterns. Opportunity items route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise.
 
 ---
 
@@ -150,7 +150,7 @@ Five parallel specialists investigate API compatibility, dependencies, tests, in
 | **Infrastructure** | Sonnet | CI/CD, deployment, monitoring changes |
 | **Data** | Opus | Schema, ORM, data access patterns, rollback strategy |
 
-Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/migration-YYYY-MM-DD-{slug}.md`.
+Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goes to `docs/migration-YYYY-MM-DD-{slug}.md`. Migration steps route to `docs/roadmap.md` milestones when a roadmap exists, falling back to `TODO.md` backlog otherwise — always after you confirm.
 
 ---
 

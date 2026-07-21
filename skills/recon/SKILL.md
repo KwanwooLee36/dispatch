@@ -409,7 +409,8 @@ Print:
     Table stakes:   X parity features
 
   PERSISTENCE:
-    Backlog items:  X added to TODO.md (Y deduped)
+    Backlog items:  X added to {docs/roadmap.md | TODO.md} (Y deduped)
+                    — name whichever destination Step 8 actually wrote to
     Design notes:   X written to .skeptic/recon-designs/
 
   Full report: .skeptic/recon-YYYY-MM-DD.md

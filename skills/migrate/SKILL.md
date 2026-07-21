@@ -39,6 +39,15 @@ Extract source and target from the migration intent string. Warn if codebase has
 - **Sonnet**: Dependencies, Tests, Infrastructure — more pattern-matching and inventory work
 - **Quick mode override**: See Quick Mode section below
 
+### Agent Tool Grants
+
+All five dimension agents are **read-only analysts**. They inspect a live codebase ahead of a risky migration and must never change it.
+
+**What agents can use**: Read, Glob, Grep, WebSearch, WebFetch (target-ecosystem research)
+**What agents must NOT do**: Write, Edit, Bash. No file modification, no command execution, no dependency installation, no test runs.
+
+The only writes in this skill are performed by the main thread, after the user confirms: the plan file in `docs/` (Step 6), backlog/roadmap items (Step 8), and the optional design doc (Step 9).
+
 ## Execution Flow
 
 ```dot
@@ -55,7 +64,8 @@ digraph migrate_flow {
     synthesis [label="Spawn synthesis agent\n(merge, cross-cutting risks, effort estimate)"];
     console [label="Print summary\n(go/no-go, top risks)"];
     file [label="Write plan to\ndocs/migration-YYYY-MM-DD-{slug}.md"];
-    todo [label="Offer TODO.md items\n(user confirms)"];
+    todo [label="Offer backlog items\n(user confirms first,\nthen roadmap, else TODO.md)"];
+    offer [label="Offer design doc\npersistence"];
 
     start -> parse;
     parse -> validate;
@@ -66,6 +76,7 @@ digraph migrate_flow {
     synthesis -> console;
     synthesis -> file;
     file -> todo;
+    todo -> offer;
 }
 ```
 
@@ -317,7 +328,11 @@ Print migration assessment to console:
 
 ### Step 8: Persist Backlog
 
-After user confirms, write migration steps to `TODO.md` under a `### Migration {SOURCE} → {TARGET} — YYYY-MM-DD` section.
+**Ask before writing anything.** Nothing in this step touches the filesystem until the user confirms.
+
+1. **Offer**: "Add these migration steps to the project backlog? (Y/n)"
+2. **If declined**: skip silently. Do not create or modify `TODO.md` or `docs/roadmap.md`.
+3. **If confirmed**: route the items per the branch below.
 
 Items sourced from: Phase steps in the migration plan, ordered by phase dependency.
 
@@ -326,11 +341,23 @@ Format per item:
 - [PHASE] Step name — effort estimate. See: docs/migration-YYYY-MM-DD-{slug}.md
 ```
 
-If no `TODO.md` exists: create with `# TODO\n\n## Backlog\n` header.
+**A. Roadmap routing (preferred):** Check if `docs/roadmap.md` exists in the target project.
 
-If `TODO.md` exists but has no `## Backlog` section: append one.
+If it exists:
+1. Read the roadmap. Find a matching milestone by topic/keyword overlap with the migration's source/target and each step's name.
+2. Add each non-duplicate step as a task under the matching milestone, using the item format above.
+3. If no milestone matches, add a `### Milestone: Migration {SOURCE} → {TARGET}` section in the nearest upcoming phase.
+4. **Deduplicate**: check existing roadmap tasks for >70% word overlap on **step name only**. Skip duplicates.
+5. Update the roadmap's `Last updated:` date to today.
+6. Report: `"Routed N steps to roadmap: X to [milestone]."`
+7. Do NOT also write these items to TODO.md backlog — roadmap is the destination.
 
-Offer: "Add these steps to TODO.md backlog? (Y/n)"
+**B. TODO.md fallback:** If `docs/roadmap.md` does NOT exist:
+1. Find or create `TODO.md`: if none exists, create with `# TODO\n\n## Backlog\n` header. If it exists but has no `## Backlog` section, append one.
+2. **Deduplicate**: check existing `## Backlog` content for >70% word overlap on **step name only**. Skip duplicates.
+3. Append non-duplicate steps under a `### Migration {SOURCE} → {TARGET} — YYYY-MM-DD` sub-heading.
+4. Report the count added. If all duplicates: "All migration steps already in backlog. Nothing added."
+5. Print: `"Consider running /toolkit:roadmap generate to enable roadmap routing."`
 
 ### Step 9: Offer Design Doc Persistence
 
