@@ -519,7 +519,7 @@ and implementation sessions.
    ```markdown
    ## Design Docs
 
-   When orienting (switch-in, dian, or starting any session), read all files in `docs/designs/`. These contain decisions, analyses, and strategic plans that inform future work.
+   When orienting (switch-in, dian, or starting any session), read `docs/designs/INDEX.md` (one line per doc: title, status, hook) and open individual docs on demand — skip `superseded` entries, and archive shipped docs to `docs/archive/`. If no `INDEX.md` exists, read the files directly, and create one once the directory exceeds a few docs. These contain decisions, analyses, and strategic plans that inform future work.
    ```
    - Existence check: Grep CLAUDE.md for `## Design Docs` first. If it exists, skip injection.
    - If CLAUDE.md doesn't exist, create it with just this block.

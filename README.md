@@ -156,7 +156,7 @@ Console prints go/no-go verdict, top 5 risks, and effort estimate. Full plan goe
 
 ## Design Doc Persistence
 
-Five skills — **skeptic** (via `/dispatch:skeptic plan`), **cartograph**, **landscape**, **migrate**, and **tribunal** — can persist their primary output as a design doc in `docs/designs/`. On the first time that directory is created in a project, they append a `## Design Docs` orientation block to the project's `CLAUDE.md`, so future sessions (switch-in, dian, or any session start) read every file in `docs/designs/` and inherit the context.
+Five skills — **skeptic** (via `/dispatch:skeptic plan`), **cartograph**, **landscape**, **migrate**, and **tribunal** — can persist their primary output as a design doc in `docs/designs/`. On the first time that directory is created in a project, they append a `## Design Docs` orientation block to the project's `CLAUDE.md`, so future sessions (switch-in, dian, or any session start) read `docs/designs/INDEX.md` and open individual docs on demand, inheriting the context without paying for the whole directory.
 
 **Recon is the exception — it does not use `docs/designs/` and does not auto-inject into `CLAUDE.md`.** Recon's design notes are fragmentary: one note per gap tagged **STEAL** in its Inbound Gap Matrix. It writes each to `.skeptic/recon-designs/[gap-name].md` and links them from the main recon report (`.skeptic/recon-YYYY-MM-DD.md`). This keeps recon's many small, competitive-intelligence fragments co-located with the skeptic/recon reports they derive from, rather than scattering them across `docs/designs/` and bloating the always-read `CLAUDE.md` auto-inject. Recon surfaces these notes through its report and its routed backlog/roadmap items instead.
 
