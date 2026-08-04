@@ -16,6 +16,9 @@ Multi-agent analysis and planning toolkit for Claude Code. Fan-out parallel spec
 
 ## Conventions
 
+See `CONTRIBUTING.md` for the fan-out contract, the trigger-description convention, and the
+disambiguation discipline for new/changed skill trigger keywords.
+
 - Documentation-only plugin (no runtime code)
 - Skill logic lives entirely in SKILL.md files
 - Skill references use `/dispatch:<skill>` namespace (e.g. `/dispatch:skeptic`)
