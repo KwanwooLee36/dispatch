@@ -21,3 +21,7 @@ Thumbs.db
 
 # Scorched-earth harness scratch/worktree state (generated, not tracked in plugin repo)
 .scorched/
+
+# Loop-implement orchestrator scratch state (generated, not tracked in plugin repo)
+.loop/
+.session-start-sha
