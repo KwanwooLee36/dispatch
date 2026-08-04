@@ -11,6 +11,15 @@ Two feat-level commits shipped user-facing skill behavior with no accompanying v
 
 Both are new agent/routing surfaces on existing skills — squarely "user-facing behavior changed" under the checklist's intent, even though the checklist's wording didn't make that unambiguous at the time (see CLAUDE.md fix in this same change).
 
+## [2.3.2] - 2026-08-04
+
+- `e52e755` (2026-08-04) — feat: add `$schema` and `displayName` to plugin.json.
+- `c694066` (2026-08-04) — chore: gitignore loop-implement orchestrator scratch state.
+- `e08afdb` (2026-08-04) — docs: backfill CHANGELOG.md bands 2.2.1 through 2.3.1.
+- `6be821e` (2026-08-04) — docs: add CONTRIBUTING.md capturing fan-out contract and trigger conventions. **Bumped version 2.3.1 → 2.3.2.**
+
+All four shipped as a parallel fan-out batch, each on its own branch, merged to `main` in one consolidation pass. Three deliberately did not bump — docs and manifest metadata are exempt under the Release Checklist. The fourth's bump was forced by a commit-gate exempt-list gap rather than chosen, but a single patch is the right level for the band's aggregate (docs and manifest metadata only, no skill behavior change), so it stands.
+
 ## [2.3.1] - 2026-08-03
 
 - `f5d3fc4` (2026-07-21) — docs: relocate audit reports, adopt writing-skills convention, tend structure pass.
