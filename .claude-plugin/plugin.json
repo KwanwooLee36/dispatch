@@ -1,5 +1,7 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "dispatch",
+  "displayName": "Dispatch",
   "description": "Multi-agent analysis and planning toolkit. Fan-out parallel specialists for adversarial review, competitive research, decision analysis, codebase mapping, domain surveys, and migration planning.",
   "version": "2.3.1",
   "author": { "name": "KwanwooLee36" },
