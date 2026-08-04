@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.3.2] - 2026-08-04
+
+- feat: apply trigger-overlap disambiguators O1-O4 to skill descriptions — recon drops the bare `market research` trigger and gates on competitors already named in a skeptic report; landscape gets an explicit "use recon instead" redirect; tribunal gets decided-vs-undecided (vs migrate), named-options (vs landscape), and adopt-vs-compete-with (vs recon) clauses; migrate gets a decision-already-made clause pointing back to tribunal. See `docs/audits/trigger-overlap-audit-2026-07-21.md` O1-O4. **Bumped version 2.3.1 → 2.3.2.**
+
 Reconstructed from `git log -p -- .claude-plugin/plugin.json` against full commit history. A version band groups every commit that shipped between one `plugin.json` version bump and the next; the bump commit itself is the last entry in its own band. This is documentation only — no historical version number is changed.
 
 ## Audit note

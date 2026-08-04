@@ -1,6 +1,6 @@
 ---
 name: tribunal
-description: Use when the user says 'tribunal', 'decide', 'compare options', 'should we use X or Y', 'which is better', or wants structured multi-perspective analysis of a technical decision. Spawns competing advocate agents that each argue for one option.
+description: Use when the user says 'tribunal', 'decide', 'compare options', 'should we use X or Y', 'which is better', or wants structured multi-perspective analysis of a technical decision. Use for a decision that has not been made yet; if the choice is already made and the question is how to execute the move, use migrate. The user must name 2-4 specific options; if they are asking what the options even are, use landscape. For options you might adopt; for products you compete with, use recon. Spawns competing advocate agents that each argue for one option.
 ---
 
 # Tribunal

@@ -1,6 +1,6 @@
 ---
 name: recon
-description: Use when the user says 'recon', 'competitor research', 'market research', 'competitive analysis', 'compare competitors', or wants deep competitive analysis building on skeptic's concept agent findings. Reads competitors from latest skeptic report, researches each in depth, produces gap matrix and differentiator analysis with design suggestions.
+description: Use when the user says 'recon', 'competitor research', 'competitive analysis', 'compare competitors', or wants deep competitive analysis of this project against competitors already named in a skeptic report. Requires a prior /dispatch:skeptic run with the concept agent — use landscape instead for open-ended domain research with no prior report. Not for choosing between tools to adopt — that is tribunal. Reads competitors from latest skeptic report, researches each in depth, produces gap matrix and differentiator analysis with design suggestions.
 ---
 
 # Recon

@@ -1,6 +1,6 @@
 ---
 name: migrate
-description: Use when the user says 'migrate', 'migration plan', 'how do I move from X to Y', 'upgrade path', or wants multi-dimensional risk analysis for framework, language, or architecture migrations. Spawns parallel risk dimension agents to analyze API surface, dependencies, tests, infrastructure, and data layer.
+description: Use when the user says 'migrate', 'migration plan', 'how do I move from X to Y', 'upgrade path', or wants multi-dimensional risk analysis for framework, language, or architecture migrations. Assumes the decision is already made; use tribunal first if the user is still choosing between the target and alternatives. Spawns parallel risk dimension agents to analyze API surface, dependencies, tests, infrastructure, and data layer.
 ---
 
 # Migrate

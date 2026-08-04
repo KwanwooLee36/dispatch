@@ -1,6 +1,6 @@
 ---
 name: landscape
-description: Use when the user says 'landscape', 'survey', 'research the space', 'what exists for X', 'market research', or wants standalone domain/market research without requiring a prior skeptic run. Spawns parallel research agents across solutions, approaches, community, and business dimensions.
+description: Use when the user says 'landscape', 'survey', 'research the space', 'what exists for X', 'market research', or wants standalone domain/market research without requiring a prior skeptic run. Use recon instead when the goal is comparing this project against a named competitor set from an existing skeptic report. Spawns parallel research agents across solutions, approaches, community, and business dimensions.
 ---
 
 # Landscape
